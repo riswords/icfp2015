@@ -16,14 +16,14 @@ Elm.TickingPort.make = function (_elm) {
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
    $Time = Elm.Time.make(_elm);
-   var messageOut = Elm.Native.Port.make(_elm).outboundSignal("messageOut",
+   var main = $Graphics$Element.show("main");
+   var output = Elm.Native.Port.make(_elm).outboundSignal("output",
    function (v) {
       return v;
    },
    A2($Signal.map,
    $Basics.toString,
    $Time.every($Time.second)));
-   var main = $Graphics$Element.show("main");
    _elm.TickingPort.values = {_op: _op
                              ,main: main};
    return _elm.TickingPort.values;

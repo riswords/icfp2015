@@ -1,4 +1,4 @@
-module TickingPort where
+module ElmMain where
 
 import Signal
 import Signal exposing ((<~), Signal)
