@@ -7,9 +7,26 @@ import List        exposing (repeat, map, take, drop, foldr, (::), append, head,
 initGrid : Int -> Int -> Grid
 initGrid width height = repeat height (repeat width Empty)
 
--- TODO: FIX ME
 convertUnit : Unit -> HexUnit
-convertUnit {members, pivot} = {members = [], location = {x = 0, y = 0, z = 0}}
+convertUnit {members, pivot} = 
+    let hexMembers : List HexCell
+        hexMembers = map (convertCell pivot) members
+
+        origin : HexCell
+        origin = convertCell { x = 0, y = 0 } pivot
+    in { members = hexMembers
+        , location = origin
+        }
+
+convertCell : Cell -> Cell -> HexCell
+convertCell pivot cell = 
+    let (relCol, relRow) = (cell.x - pivot.x, cell.y - pivot.y)
+        newX = relCol - ((relRow - (relRow % 2)) // 2)
+        newZ = relRow
+    in { x = newX
+        , z = newZ
+        , y = (-newX) - newZ
+        }
 
 fillCell : Cell -> Grid -> Grid
 fillCell {x, y} g = 
@@ -30,3 +47,4 @@ initGameState {id, units, width, height, filled, sourceLength, sourceSeeds} =
       , sourceSeed   = s
       })
     sourceSeeds
+
