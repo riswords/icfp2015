@@ -17,6 +17,9 @@ get i ls =
     |> Just
     |> withDefault Nothing
 
+getUnit : Int -> List HexUnit -> HexUnit
+getUnit i ls = withDefault (HexUnit [] (HexCell 0 0 0)) (get i ls)
+
 getCell : Int -> Int -> Int -> Grid -> Maybe Hex
 getCell x y z grid = 
     let rowIndex = z

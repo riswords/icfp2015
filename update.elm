@@ -4,6 +4,7 @@ import DataStructs exposing (..)
 import List        exposing (all, repeat, map, length, sum, foldr)
 import Util        exposing (..)
 import Hex         exposing (rotateUnit, moveUnit, isRotateCommand)
+import Rand        exposing (next)
 
 -- Model -> (Model, # of Cleared Lines)
 clearRows : HexModel -> (HexModel, Int)
@@ -55,3 +56,14 @@ update move model =
      then let (newModel, lineClear) = clearRows model 
           in  updateScore newModel lineClear updUnit |> spawnNewUnit
      else { model | unit <- updUnit }
+
+
+-- duplicated logic in init.elm, keep in sync
+spawnNewUnit : HexModel -> HexModel
+spawnNewUnit model = 
+    let (randInt, seed') = next model.sourceSeed
+        unit = getUnit (randInt % model.sourceLength) model.units
+    in { model
+        | unit <- unit
+        , sourceSeed <- seed'
+        }

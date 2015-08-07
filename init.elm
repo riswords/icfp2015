@@ -3,6 +3,7 @@ module Init where
 import DataStructs exposing (..)
 import Util        exposing (..)
 import List        exposing (repeat, map, take, drop, foldr, (::), append, head, tail)
+import Rand        exposing (next)
 
 initGrid : Int -> Int -> Grid
 initGrid width height = repeat height (repeat width Empty)
@@ -41,15 +42,16 @@ initGameState {id, units, width, height, filled, sourceLength, sourceSeeds} =
   map 
     (\ s -> 
       let (randInt, seed') = next s
-          units = map convertUnit units
+          hexUnits = map convertUnit units
       in
         { id           = id
-        , units        = units
-        , unit         = get (randInt % sourceLength) units
+        , units        = hexUnits
+        , unit         = getUnit (randInt % sourceLength) hexUnits
         , grid         = foldr fillCell (initGrid width height) filled
         , sourceLength = sourceLength
         , sourceSeed   = seed'
         , score        = 0
+        , isGameOver   = False
         })
     sourceSeeds
 
