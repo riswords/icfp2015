@@ -3,20 +3,35 @@ module Hex where
 import DataStructs exposing (..)
 import List exposing (map)
 
-rotateUnitCW : HexUnit -> HexUnit
-rotateUnitCW { members, location } = 
-    { members = map rotateCellCW members
-    , location = location 
-    }
+rotateUnit : HexUnit -> TurnDirection -> HexUnit
+rotateUnit unit direction = 
+    let newMembers = case direction of
+                        CW -> map rotateCellCW unit.members
+                        CCW -> map rotateCellCCW unit.members
+                        _ -> unit.members
+    in { unit | members <- newMembers }
 
 rotateCellCW : HexCell -> HexCell
 rotateCellCW { x, y, z } = { x = -z, y = -x, z = -y }
 
-rotateUnitCCW : HexUnit -> HexUnit
-rotateUnitCCW { members, location } =
-    { members = map rotateCellCCW members
-    , location = location 
-    }
-
 rotateCellCCW : HexCell -> HexCell
 rotateCellCCW { x, y, z } = { x = -y, y = -z, z = -x }
+
+
+moveUnit : MoveDirection -> HexUnit -> HexUnit
+moveUnit direction unit = 
+    let newMembers = map (moveCell direction) unit.members
+        newLocation = moveCell direction unit.location
+    in { unit 
+        | members <- newMembers
+        , location <- newLocation
+        }
+
+moveCell : MoveDirection -> HexCell -> HexCell
+moveCell direction {x, y, z} = 
+    case direction of
+        E -> { x = x + 1, y = y - 1, z = z }
+        W -> { x = x - 1, y = y + 1, z = z }
+        SE -> { x = x, y = y - 1, z = z + 1 }
+        SW -> { x = x - 1, y = y, z = z + 1 }
+        _ -> { x = x, y = y, z = z}
