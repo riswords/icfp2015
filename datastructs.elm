@@ -15,9 +15,20 @@ type alias Cell =
     , y : Int
     }
 
+type alias HexCell = 
+    { x : Int
+    , y : Int
+    , z : Int
+    }
+
 type alias Unit = 
     { members :  List Cell
     , pivot : Cell
+    }
+
+type alias HexUnit =
+    { members : List HexCell
+    , location : HexCell
     }
 
 type Command 
