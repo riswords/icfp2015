@@ -36,7 +36,7 @@ type alias HexModel =
     , sourceSeed : Int
     }
 
-type alias Result = 
+type alias Output = 
     { id : Int
     , seed : Int
     , tag : String
