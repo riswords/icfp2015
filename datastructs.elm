@@ -29,19 +29,13 @@ type alias HexUnit =
     , location : HexCell
     }
 
-type MoveDirection
-    = E
+type Command 
+    = CW
+    | CCW
+    | E
     | W
     | SE
     | SW
-
-type TurnDirection
-    = CW
-    | CCW
-
-type Command 
-    = Move MoveDirection Char
-    | Turn TurnDirection Char
 
 type alias HexModel = 
     { id : Int

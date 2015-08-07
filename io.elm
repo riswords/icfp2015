@@ -9,12 +9,12 @@ import String      exposing (toList, fromList)
 extractOp : Command -> Char
 extractOp op = 
   case op of
-    (W   x) -> x 
-    (E   x) -> x 
-    (SE  x) -> x
-    (SW  x) -> x
-    (CW  x) -> x
-    (CCW x) -> x
+    W   -> 'p' 
+    E   -> 'b'
+    SW  -> 'a'
+    SE  -> 'l'
+    CW  -> 'd'
+    CCW -> 'k'
 
 toJson : Output -> String
 toJson {id, seed, tag, solution} =
