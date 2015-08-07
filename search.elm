@@ -3,7 +3,7 @@ module Search where
 import Queue       exposing (..)
 import DataStructs exposing (..)
 import Update      exposing (update)
-import List        exposing ((::), map, sortWith)
+import List        exposing ((::), map, sortWith, foldl)
 
 generateNextStates : HexModel -> List Command -> List (HexModel, List Command)
 generateNextStates model history = 
