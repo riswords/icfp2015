@@ -2,7 +2,7 @@ module DataStructs where
 
 type Hex 
     = Empty
-    | Filled Cell
+    | Filled HexCell
 
 type HexRow 
     = LeftRow  (List Hex)
