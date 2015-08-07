@@ -21,8 +21,8 @@ type alias Unit =
     }
 
 type Command 
-    = E Char
-    | W Char
+    = E  Char
+    | W  Char
     | SE Char
     | SW Char
     | CW Char
