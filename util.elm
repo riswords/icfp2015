@@ -26,3 +26,8 @@ getCell x y z grid =
     in get colIndex row
         |> Just
         |> withDefault Nothing
+
+inBounds : Int -> Int -> Int -> Grid -> Bool
+inBounds x y z grid = case getCell x y z of
+                        Nothing -> False
+                        Just _ -> True
