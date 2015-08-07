@@ -7,8 +7,10 @@ increment  = 12345        -- 3 5 823
 modulus    = 4294967296
 mask       = 2147418112
 
-next : Int -> Int
-next x = ((multiplier * x) + increment) % modulus
+-- Seed -> (Next, Seed)
+next : Int -> (Int, Int)
+next x = let nextSeed = ((multiplier * x) + increment) % modulus
+         in  (maskOff nextSeed, nextSeed)
 
 maskOff n = Bitwise.shiftRightLogical (Bitwise.and mask n) 16
 
