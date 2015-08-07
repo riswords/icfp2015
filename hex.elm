@@ -44,8 +44,3 @@ isRotateCommand c =
     CCW -> True
     _   -> False
 
-updateUnit : Command -> HexUnit -> HexUnit
-updateUnit command =
-  if   isRotateCommand command 
-  then rotateUnit command 
-  else moveUnit   command 

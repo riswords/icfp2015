@@ -10,7 +10,6 @@ filled f =
     Empty  ->False
     Filled -> True
 
-
 get : Int -> List a -> Maybe a
 get i ls = 
     drop i ls

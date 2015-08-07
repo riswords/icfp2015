@@ -45,6 +45,7 @@ initGameState {id, units, width, height, filled, sourceLength, sourceSeeds} =
       , grid         = foldr fillCell (initGrid width height) filled
       , sourceLength = sourceLength
       , sourceSeed   = s
+      , score        = 0
       })
     sourceSeeds
 

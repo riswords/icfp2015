@@ -43,6 +43,7 @@ type alias HexModel =
     , grid : Grid
     , sourceLength : Int
     , sourceSeed : Int
+    , score : Int
     }
 
 type alias Output = 
