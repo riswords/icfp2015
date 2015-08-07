@@ -1,30 +1,43 @@
 module Update where
 
 import DataStructs exposing (..)
-import List        exposing (all, repeat, map)
+import List        exposing (all, repeat, map, length, sum, foldr)
 import Util        exposing (..)
-import Hex         exposing (rotateUnit, moveUnit)
+import Hex         exposing (rotateUnit, moveUnit, isRotateCommand)
 
-
-clearRows : HexModel -> HexModel
+-- Model -> (Model, # of Cleared Lines)
+clearRows : HexModel -> (HexModel, Int)
 clearRows model = 
     let clearOneRow : List Hex -> (Int, List Hex)
         clearOneRow row = if all filled row
-                            then (1, repeat width Empty)
-                            else (0, row)
+                          then (1, repeat model.width Empty)
+                          else (0, row)
+        rows = map clearOneRow model.grid
+    in ( { model | grid <- applyGravity <| map snd rows }
+       , sum <| map fst rows 
+       )
 
-        scoredRows : List (Int, List Hex)
-        scoredRows = map clearOneRow model.grid
-
-        rowScore = sum (map fst scoredRows)
-    in { model 
-            | grid <- applyGravity (map snd scoredRows)
-            , score <- score + rowScore
-            }
+updateScore : HexModel -> Int -> HexUnit -> HexModel
+updateScore model ls unit = 
+  let size       = length unit.members
+      lsOld      = model.prevLines
+      points     = size + 100 * (1 + ls) * ls / 2
+      lineBonus = if   lsOld > 1 
+                  then floor ((lsOld - 1) * points / 10)
+                  else 0
+  in { model | score     <- model.score + points + lineBonus 
+             , prevLines <- ls }
 
 applyGravity : Grid -> Grid
-applyGravity grid = grid
-
+applyGravity = 
+  foldr  
+    (\ x ls -> 
+       case ls of
+         []      -> [x]
+         (y::ys) -> if   all (not << filled) y
+                    then x::ys
+                    else x::y::ys)
+    []
 
 updateUnit : Grid -> Command -> HexUnit -> (Bool, HexUnit)
 updateUnit grid command =
@@ -39,6 +52,6 @@ update : Command -> HexModel -> HexModel
 update move model = 
   let (isPlaced, updUnit) = updateUnit model.grid move model.unit
   in if isPlaced
-     then model |> clearRows |> updateScore |> spawnNewUnit
+     then let (newModel, lineClear) = clearRows model 
+          in  updateScore newModel lineClear updUnit |> spawnNewUnit
      else { model | unit <- updUnit }
-

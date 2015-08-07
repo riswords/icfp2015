@@ -46,6 +46,7 @@ type alias HexModel =
     , sourceLength : Int
     , sourceSeed   : Int
     , score        : Int
+    , prevLines    : Int
     }
 
 type alias Output = 
@@ -64,4 +65,3 @@ type alias Input =
   , sourceLength : Int
   , sourceSeeds  : List Int
   }
-
