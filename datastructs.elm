@@ -4,11 +4,9 @@ type Hex
     = Empty
     | Filled HexCell
 
-type HexRow 
-    = LeftRow  (List Hex)
-    | RightRow (List Hex)
+type alias HexRow = List Hex
 
-type alias Grid  = List HexRow
+type alias Grid   = List HexRow
 
 type alias Cell = 
     { x : Int
@@ -41,7 +39,7 @@ type Command
 
 type alias HexModel = 
     { id : Int
-    , units : List Unit
+    , units : List HexUnit
     , grid : Grid
     , sourceLength : Int
     , sourceSeed : Int
@@ -56,11 +54,11 @@ type alias Output =
 
 type alias Input =
   { id           : Int
-  , unit         : List Unit
+  , units        : List Unit
   , width        : Int
   , height       : Int
   , filled       : List Cell
   , sourceLength : Int
-  , sourceCeeds  : List Int
+  , sourceSeeds  : List Int
   }
 

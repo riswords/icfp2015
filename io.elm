@@ -29,26 +29,23 @@ toJson {id, seed, tag, solution} =
                                          |> str )
                        ]
 
-fromJson : String -> Result String Input
-fromJson =
+fromJson : String -> Input
+fromJson s =
   let int        = Json.Decode.int
       str        = Json.Decode.string
       ls         = Json.Decode.list
       cellParser = object2 Cell ("x" := int) ("y" := int)
       unitParser = object2 Unit ("members" := (ls cellParser))
                                 ("pivot"   := cellParser)
-  in
-    decodeString <|
-      object7 Input
-        ("id"           := int)
-        ("units"        := (ls unitParser))
-        ("width"        := int)
-        ("height"       := int)
-        ("filled"       := (ls cellParser))
-        ("sourceLength" := int)
-        ("sourceSeeds"  := (ls int))
-
-
-test1 = """
-{"height":10,"width":10,"sourceSeeds":[0],"units":[{"members":[{"x":0,"y":0}],"pivot":{"x":0,"y":0}},{"members":[{"x":0,"y":0},{"x":2,"y":0}],"pivot":{"x":1,"y":0}},{"members":[{"x":0,"y":0},{"x":0,"y":2}],"pivot":{"x":0,"y":1}},{"members":[{"x":2,"y":0},{"x":0,"y":1},{"x":2,"y":2}],"pivot":{"x":1,"y":1}},{"members":[{"x":0,"y":0},{"x":1,"y":1},{"x":0,"y":2}],"pivot":{"x":0,"y":1}},{"members":[{"x":0,"y":0},{"x":1,"y":0}],"pivot":{"x":0,"y":0}},{"members":[{"x":0,"y":0},{"x":1,"y":0}],"pivot":{"x":1,"y":0}},{"members":[{"x":0,"y":0},{"x":0,"y":1}],"pivot":{"x":0,"y":0}},{"members":[{"x":0,"y":0},{"x":0,"y":1}],"pivot":{"x":0,"y":1}},{"members":[{"x":0,"y":0},{"x":1,"y":0},{"x":2,"y":0}],"pivot":{"x":0,"y":0}},{"members":[{"x":0,"y":0},{"x":1,"y":0},{"x":2,"y":0}],"pivot":{"x":1,"y":0}},{"members":[{"x":0,"y":0},{"x":1,"y":0},{"x":2,"y":0}],"pivot":{"x":2,"y":0}},{"members":[{"x":0,"y":0},{"x":0,"y":1},{"x":0,"y":2}],"pivot":{"x":0,"y":0}},{"members":[{"x":0,"y":0},{"x":0,"y":1},{"x":0,"y":2}],"pivot":{"x":0,"y":1}},{"members":[{"x":0,"y":0},{"x":0,"y":1},{"x":0,"y":2}],"pivot":{"x":0,"y":2}},{"members":[{"x":1,"y":0},{"x":0,"y":1},{"x":1,"y":2}],"pivot":{"x":1,"y":0}},{"members":[{"x":1,"y":0},{"x":0,"y":1},{"x":1,"y":2}],"pivot":{"x":1,"y":1}},{"members":[{"x":1,"y":0},{"x":0,"y":1},{"x":1,"y":2}],"pivot":{"x":1,"y":2}}],"id":0,"filled":[],"sourceLength":100}
-"""
+      dec = decodeString <|
+              object7 Input
+                ("id"           := int)
+                ("units"        := (ls unitParser))
+                ("width"        := int)
+                ("height"       := int)
+                ("filled"       := (ls cellParser))
+                ("sourceLength" := int)
+                ("sourceSeeds"  := (ls int))
+  in case dec s of -- And now I guess we strip out the result type...
+       (Ok v)    -> v
+       (Err err) -> {id = 0 , units = [], width = 1, height = 1, filled = [], sourceLength = 0, sourceSeeds = []} 
