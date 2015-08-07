@@ -40,13 +40,16 @@ initGameState : Input -> List HexModel
 initGameState {id, units, width, height, filled, sourceLength, sourceSeeds} =
   map 
     (\ s -> 
-      { id           = id
-      , units        = map convertUnit units
-      , unit         = ... 
-      , grid         = foldr fillCell (initGrid width height) filled
-      , sourceLength = sourceLength
-      , sourceSeed   = s
-      , score        = 0
-      })
+      let (randInt, seed') = next s
+          units = map convertUnit units
+      in
+        { id           = id
+        , units        = units
+        , unit         = get (randInt % sourceLength) units
+        , grid         = foldr fillCell (initGrid width height) filled
+        , sourceLength = sourceLength
+        , sourceSeed   = seed'
+        , score        = 0
+        })
     sourceSeeds
 
