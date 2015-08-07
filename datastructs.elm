@@ -51,6 +51,5 @@ type alias Input =
   , filled       : List Cell
   , sourceLength : Int
   , sourceCeeds  : List Int
-   }
-
+  }
 
