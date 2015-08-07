@@ -1,0 +1,30 @@
+Elm.TickingPort = Elm.TickingPort || {};
+Elm.TickingPort.make = function (_elm) {
+   "use strict";
+   _elm.TickingPort = _elm.TickingPort || {};
+   if (_elm.TickingPort.values)
+   return _elm.TickingPort.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "TickingPort",
+   $Basics = Elm.Basics.make(_elm),
+   $Graphics$Element = Elm.Graphics.Element.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $Time = Elm.Time.make(_elm);
+   var messageOut = Elm.Native.Port.make(_elm).outboundSignal("messageOut",
+   function (v) {
+      return v;
+   },
+   A2($Signal.map,
+   $Basics.toString,
+   $Time.every($Time.second)));
+   var main = $Graphics$Element.show("main");
+   _elm.TickingPort.values = {_op: _op
+                             ,main: main};
+   return _elm.TickingPort.values;
+};
