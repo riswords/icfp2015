@@ -29,16 +29,6 @@ toJson {id, seed, tag, solution} =
                                          |> str )
                        ]
 
-type alias Input =
-  { id           : Int
-  , unit         : List Unit
-  , width        : Int
-  , height       : Int
-  , filled       : List Cell
-  , sourceLength : Int
-  , sourceCeeds  : List Int
-   }
-
 fromJson : String -> Result String Input
 fromJson =
   let int        = Json.Decode.int
