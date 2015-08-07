@@ -5,5 +5,5 @@ import DataStructs exposing (..)
 filled : Hex -> Bool
 filled f = 
   case f of
-    Empty      ->False
-    (Filled _) -> True
+    Empty  ->False
+    Filled -> True

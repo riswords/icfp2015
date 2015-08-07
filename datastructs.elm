@@ -2,11 +2,11 @@ module DataStructs where
 
 type Hex 
     = Empty
-    | Filled HexCell
+    | Filled
 
 type alias HexRow = List Hex
 
-type alias Grid   = List HexRow
+type alias Grid   = List (List Hex)
 
 type alias Cell = 
     { x : Int
