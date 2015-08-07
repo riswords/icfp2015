@@ -53,3 +53,14 @@ type alias Output =
     , tag : String
     , solution : List Command
     }
+
+type alias Input =
+  { id           : Int
+  , unit         : List Unit
+  , width        : Int
+  , height       : Int
+  , filled       : List Cell
+  , sourceLength : Int
+  , sourceCeeds  : List Int
+  }
+
