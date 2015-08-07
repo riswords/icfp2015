@@ -10,7 +10,11 @@ clearRows width =
   let rif    ls  = if all filled ls then repeat width Empty else ls
   in List.map rif                     
 
--- put updateUnit here, too
+updateUnit : Grid -> Command -> HexUnit -> (Bool, HexUnit)
+updateUnit grid command =
+  if   isRotateCommand command 
+  then rotateUnit grid command
+  else moveUnit   grid command
 
 -- update : Command -> Model -> (Bool, Model)
 -- Performs the requested command
