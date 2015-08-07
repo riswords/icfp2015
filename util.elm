@@ -2,7 +2,7 @@ module Util where
 
 import DataStructs exposing (..)
 import Maybe exposing (withDefault)
-import List exposing (head, drop)
+import List exposing (head, drop, length)
 
 filled : Hex -> Bool
 filled f = 
@@ -33,3 +33,11 @@ inBounds : Grid -> Int -> Int -> Int -> Bool
 inBounds grid x y z = case getCell x y z grid of
                         Nothing -> False
                         Just _ -> True
+
+
+getGridHeight : Grid -> Int
+getGridHeight = length
+
+getGridWidth : Grid -> Int
+getGridWidth = length << withDefault [] << head
+

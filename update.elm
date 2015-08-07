@@ -1,7 +1,7 @@
 module Update where
 
 import DataStructs exposing (..)
-import List        exposing (all, repeat, map, length, sum, foldr)
+import List        exposing (all, repeat, map, length, sum, foldr, length, append)
 import Util        exposing (..)
 import Hex         exposing (rotateUnit, moveUnit, isRotateCommand)
 import Rand        exposing (next)
@@ -29,16 +29,24 @@ updateScore model ls unit =
   in { model | score     <- model.score + points + lineBonus 
              , prevLines <- ls }
 
+padTillFull : Int -> List Hex -> Grid -> Grid
+padTillFull height emptyRow grid = append (repeat (height - getGridHeight grid) emptyRow) grid
+
 applyGravity : Grid -> Grid
-applyGravity = 
-  foldr  
-    (\ x ls -> 
-       case ls of
-         []      -> [x]
-         (y::ys) -> if   all (not << filled) y
-                    then x::ys
-                    else x::y::ys)
-    []
+applyGravity grid = 
+  let gridHeight = getGridHeight grid
+      emptyRow   = repeat (getGridWidth grid ) Empty
+  in
+    padTillFull gridHeight emptyRow <|
+      foldr  
+        (\ x ls -> 
+           case ls of
+             []      -> [x]
+             (y::ys) -> if   all (not << filled) y
+                        then x::ys
+                        else x::y::ys)
+        []
+        grid
 
 updateUnit : Grid -> Command -> HexUnit -> (Bool, HexUnit)
 updateUnit grid command =
