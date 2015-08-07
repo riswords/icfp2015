@@ -27,7 +27,7 @@ getCell x y z grid =
         |> Just
         |> withDefault Nothing
 
-inBounds : Int -> Int -> Int -> Grid -> Bool
-inBounds x y z grid = case getCell x y z of
+inBounds : Grid -> Int -> Int -> Int -> Bool
+inBounds grid x y z = case getCell x y z grid of
                         Nothing -> False
                         Just _ -> True
