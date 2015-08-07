@@ -42,6 +42,7 @@ initGameState {id, units, width, height, filled, sourceLength, sourceSeeds} =
     (\ s -> 
       { id           = id
       , units        = map convertUnit units
+      , unit         = ... 
       , grid         = foldr fillCell (initGrid width height) filled
       , sourceLength = sourceLength
       , sourceSeed   = s

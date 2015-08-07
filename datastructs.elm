@@ -38,12 +38,14 @@ type Command
     | SW
 
 type alias HexModel = 
-    { id : Int
-    , units : List HexUnit
-    , grid : Grid
+    { id           : Int
+    , units        : List HexUnit
+    , unit         : HexUnit
+    , isGameOver   : Bool
+    , grid         : Grid
     , sourceLength : Int
-    , sourceSeed : Int
-    , score : Int
+    , sourceSeed   : Int
+    , score        : Int
     }
 
 type alias Output = 

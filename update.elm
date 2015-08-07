@@ -16,7 +16,9 @@ updateUnit grid command =
   then rotateUnit grid command
   else moveUnit   grid command
 
--- update : Command -> Model -> (Bool, Model)
--- Performs the requested command
--- clears lines
--- update the score
+update : Command -> Model -> Model
+update move model = 
+  let (isPlaced, updUnit) = updateUnit model.grid move model.unit
+  in if isPlaced
+     then model |> clearRows |> updateScore |> spawnNewUnit
+     else { model | unit <- updUnit }
