@@ -1,4 +1,4 @@
-module Hex where
+module DataStructs where
 
 type Hex 
     = Empty
