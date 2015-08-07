@@ -8,3 +8,5 @@ type HexRow = LeftRow  (List Hex)
 
 alias Grid  = List HexRow
 
+
+
