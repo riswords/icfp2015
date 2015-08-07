@@ -6,7 +6,7 @@ type Hex    = Empty
 type HexRow = LeftRow  (List Hex)
             | RightRow (List Hex)
 
-alias Grid  = List HexRow
+type alias Grid  = List HexRow
 
 
 
