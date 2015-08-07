@@ -3,29 +3,45 @@ module Search where
 import Queue       exposing (..)
 import DataStructs exposing (..)
 import Update      exposing (update)
-import List        exposing ((::), map, sortWith, foldl)
+import List        exposing ((::), map, sortWith, foldl, any, take, filter)
+import Trampoline  exposing (..)
+import Debug       exposing (log)
 
 generateNextStates : HexModel -> List Command -> List (HexModel, List Command)
 generateNextStates model history = 
-  map (\ x -> (update x model, x :: history)) [E,W,SW,SE,CW,CCW]
+  map (\ x -> (update x model, x :: history)) <| 
+    filter (\ x -> not <| isCycle x history) [E,W,SW,SE,CW,CCW]
+
+isCycle : Command -> List Command -> Bool
+isCycle command history =
+  case command of
+    E   -> went W 10 history 
+    W   -> went E 10 history
+    CW  -> went CCW 10 history 
+    CCW -> went CW 10 history
+    _   -> False
+
+went : a -> Int -> List a -> Bool
+went a n = any (\ x -> x == a) << take n 
 
 breadthFirst : HexModel -> List Command
-breadthFirst state = bfIter (push empty (state, [])) ([], 0)
+breadthFirst state = trampoline (bfIter (push empty (state, [])) ([], 0))
 
-bfIter : Queue (HexModel, List Command) -> (List Command, Int) -> List Command
+bfIter : Queue (HexModel, List Command) -> (List Command, Int) -> Trampoline (List Command)
 bfIter queue curBest =
-  if   isEmpty queue 
-  then fst curBest
-  else let (nq, popped) = pop queue
-       in case popped of
-            Nothing                  -> fst curBest
-            (Just (model, commList)) ->
-              if   model.isGameOver
-              then bfIter nq curBest
-              else let newStates = generateNextStates model commList
-                       newScores : List (List Command, Int)
-                       newScores = computeNewScores newStates
-                   in  bfIter (enqueueAll nq newStates) (findBest curBest newScores)
+  log (toString queue) <|
+    if   isEmpty queue 
+    then Done <| fst curBest
+    else let (nq, popped) = pop queue
+         in case popped of
+              Nothing                  -> Done <| fst curBest
+              (Just (model, commList)) ->
+                if   model.isGameOver
+                then bfIter nq curBest
+                else let newStates = generateNextStates model commList
+                         newScores : List (List Command, Int)
+                         newScores = computeNewScores newStates
+                     in  Continue (\ () -> bfIter (enqueueAll nq newStates) (findBest curBest newScores))
 
 findBest : (List Command, Int) -> List (List Command, Int) -> (List Command, Int)
 findBest base ls = 
