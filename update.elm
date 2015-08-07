@@ -11,7 +11,7 @@ clearRows : HexModel -> (HexModel, Int)
 clearRows model = 
     let clearOneRow : List Hex -> (Int, List Hex)
         clearOneRow row = if all filled row
-                          then (1, repeat model.width Empty)
+                          then (1, map (\ x -> Empty) row)
                           else (0, row)
         rows = map clearOneRow model.grid
     in ( { model | grid <- applyGravity <| map snd rows }
@@ -22,9 +22,9 @@ updateScore : HexModel -> Int -> HexUnit -> HexModel
 updateScore model ls unit = 
   let size       = length unit.members
       lsOld      = model.prevLines
-      points     = size + 100 * (1 + ls) * ls / 2
+      points     = size + (100 * (1 + ls) * ls // 2)
       lineBonus = if   lsOld > 1 
-                  then floor ((lsOld - 1) * points / 10)
+                  then (lsOld - 1) * points // 10
                   else 0
   in { model | score     <- model.score + points + lineBonus 
              , prevLines <- ls }

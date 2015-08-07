@@ -51,6 +51,7 @@ initGameState {id, units, width, height, filled, sourceLength, sourceSeeds} =
         , sourceLength = sourceLength
         , sourceSeed   = seed'
         , score        = 0
+        , prevLines    = 0
         , isGameOver   = False
         })
     sourceSeeds

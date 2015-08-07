@@ -7,6 +7,12 @@ type alias Queue a = (List a, List a)
 empty : Queue a
 empty = ([], [])
 
+isEmpty : Queue a -> Bool
+isEmpty q =
+  case q of
+    ([], []) -> True
+    _        -> False
+
 push : Queue a -> a -> Queue a
 push (fst, snd) x = (fst, x::snd)
 
