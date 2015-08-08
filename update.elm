@@ -1,7 +1,7 @@
 module Update where
 
 import DataStructs exposing (..)
-import List        exposing (all, repeat, map, length, sum, foldr, length, append, minimum, maximum)
+import List        exposing (..)
 import Maybe       exposing (withDefault)
 import Util        exposing (..)
 import Hex         exposing (rotateUnit, moveUnit, isRotateCommand, isUnitSafe)
@@ -58,11 +58,21 @@ updateUnit grid command =
 -- update the score
 update : Command -> HexModel -> HexModel
 update move model = 
-  let (isPlaced, updUnit) = updateUnit model.grid move model.unit
-  in if isPlaced
+  let (moveSucceeded, updUnit) = updateUnit model.grid move model.unit
+  in if not moveSucceeded
      then let (newModel, lineClear) = clearRows model 
-          in  updateScore newModel lineClear updUnit |> spawnNewUnit
+          in  updateScore newModel lineClear updUnit |> lockUnit updUnit |> spawnNewUnit
      else { model | unit <- updUnit }
+
+
+lockUnit : HexUnit -> HexModel -> HexModel
+lockUnit unit model =
+  let offset = unit.location
+      absLocs = map (\c -> HexCell (c.x + offset.x) (c.y + offset.y) (c.z + offset.z)) unit.members
+      --absOffsets = map cellToOffset absLocs
+      updater cell grid = setCell cell.x cell.y cell.z grid Filled
+      updatedGrid = foldl updater model.grid absLocs
+  in { model | grid <- updatedGrid }
 
 
 -- duplicated logic in init.elm, keep in sync

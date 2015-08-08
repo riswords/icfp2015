@@ -2,7 +2,7 @@ module Util where
 
 import DataStructs exposing (..)
 import Maybe exposing (withDefault)
-import List exposing (head, drop, length, map)
+import List exposing (head, drop, length, map, indexedMap)
 
 filled : Hex -> Bool
 filled f = 
@@ -28,6 +28,20 @@ getCell x y z grid =
     in get colIndex row
         |> Just
         |> withDefault Nothing
+
+setCell : Int -> Int -> Int -> Grid -> Hex -> Grid
+setCell x y z grid hexVal =
+    let (col, row) = cellToOffset (HexCell x y z)
+        gridRow = withDefault [] (get row grid)
+        updatedRow = set col gridRow hexVal
+    in set row grid updatedRow
+
+set : Int -> List a -> a -> List a
+set index ls newVal = 
+    indexedMap (\i v -> if index == i
+                        then newVal
+                        else v)
+               ls
 
 inBounds : Grid -> Int -> Int -> Int -> Bool
 inBounds grid x y z = case getCell x y z grid of
