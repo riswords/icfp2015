@@ -30,13 +30,11 @@ updateScore model ls unit =
   in { model | score     <- model.score + points + lineBonus 
              , prevLines <- ls }
 
-padTillFull : Int -> List Hex -> Grid -> Grid
-padTillFull height emptyRow grid = append (repeat (height - getGridHeight grid) emptyRow) grid
-
 applyGravity : Grid -> Grid
 applyGravity grid = 
   let gridHeight = getGridHeight grid
       emptyRow   = repeat (getGridWidth grid ) Empty
+      padTillFull height emptyRow grid = append (repeat (height - getGridHeight grid) emptyRow) grid
   in
     padTillFull gridHeight emptyRow <|
       foldr  

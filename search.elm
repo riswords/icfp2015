@@ -54,7 +54,7 @@ bfStep queue curBest =
             (Just (model, commList)) ->
               if   model.isGameOver
               then More (nq, curBest)
-              else let newStates = generateNextStates model commList
+              else let newStates = watch "newStates" <| generateNextStates model commList
                        newScores : List (List Command, Int)
                        newScores = computeNewScores newStates
                    in  More ((enqueueAll nq newStates), (findBest curBest newScores))

@@ -3,14 +3,15 @@ module ElmMain2 where
 import Signal
 import Signal exposing ((<~), Signal)
 
-import IO          exposing (..)
-import Tests       exposing (..)
-import Init        exposing (..)
-import Search      exposing (..)
-import List        exposing (map, take, head)
-import Queue       exposing (push, empty, Queue, peek)
-import DataStructs exposing (..)
-import Maybe       exposing (..)
+import IO               exposing (..)
+import Tests            exposing (..)
+import Init             exposing (..)
+import Search           exposing (..)
+import List             exposing (map, take, head)
+import Queue            exposing (push, empty, Queue, peek)
+import DataStructs      exposing (..)
+import Maybe            exposing (withDefault)
+import Graphics.Element exposing (flow, down, show)
 
 import Time
 import Debug  exposing (watch)
@@ -34,17 +35,14 @@ looper = \ () ->
                                        Done _            -> m
                                        More (queue,best) -> bfStep queue best)
                            initModel
-                           (Time.fps 100)
+                           (Time.fps 1)
 
 viewer : Running (Queue (HexModel, List Command), (List Command, Int)) -> Element
 viewer m =
   case m of
-    (More (queue, best)) -> hexView (peek queue)
-    (Done (queue, best)) -> hexView (peek queue) 
+    (More ((top, btm), best)) -> flow down (map hexView (List.append top btm))
+    (Done ((top, btm), best)) -> show best
 
-hexView : Maybe (HexModel, List Command) -> Element
-hexView m =
-  case m of 
-    (Just (m, l)) -> show l
-    Nothing       -> show m
+hexView : (HexModel, List Command) -> Element
+hexView (m, l) = show l
 

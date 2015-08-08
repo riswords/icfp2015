@@ -21,8 +21,8 @@ viewer m =
 hexView : Maybe (HexModel, List Command) -> Element
 hexView maybeStuff =
     case maybeStuff of
-        Nothing -> show maybeStuff
-        Just (hexModel, commandHistory) -> showModel hexModel
+      Nothing -> show maybeStuff
+      Just (hexModel, commandHistory) -> showModel hexModel commandHistory
 
 -- Just some important values
 hexRadius    = 20
@@ -52,8 +52,8 @@ drawUnit h w unit =
   in  List.append (List.map unitNGon coords) [centerDot]
 
 
-showModel : HexModel -> Element
-showModel model = 
+showModel : HexModel -> List Command -> Element
+showModel model commands = 
     let gridWidth = toFloat <| getGridWidth model.grid
         gridHeight = toFloat <| getGridHeight model.grid
         makeNGon rownum hexnum val =
@@ -77,10 +77,10 @@ showModel model =
                       [move collageOffset (group (List.append ngons unitgons))]
             -- , flow right [renderString  "Unit: ", show model.unit]
             , flow right [renderString "Score: ", show model.score]
+            , flow right <| (renderString "Moves: " :: (List.map show commands))
             ]
 
 renderString = centered << monospace << fromString
-
 
 clearGrey : Color
 clearGrey = rgba 160 160 160 1.0
