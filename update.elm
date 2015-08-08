@@ -70,8 +70,9 @@ update move model =
 spawnNewUnit : HexModel -> HexModel
 spawnNewUnit model = 
     let (randInt, seed') = next model.sourceSeed
-        unit = getUnit (randInt % model.sourceLength) model.units
+        numUnitChoices = length model.units
+        newUnit = getUnit (randInt % numUnitChoices) model.units
     in { model
-        | unit <- unit
+        | unit <- newUnit
         , sourceSeed <- seed'
         }
