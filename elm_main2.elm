@@ -21,11 +21,6 @@ import Graphics.Element exposing (Element, show)
 -- port output : Signal String
 -- port output = Signal.map toString (Time.every Time.second)
 
--- Nasty hack to make the compiler happy
--- main : Element
--- main = let init = withDefault emptyModel <| head (initGameState (fromJson test0))
---        in  show <| List.map snd <| generateNextStates init [SW] 
-
 main : Signal Element
 main = looper()
 
@@ -39,7 +34,7 @@ looper = \ () ->
                                        Done _            -> m
                                        More (queue,best) -> bfStep queue best)
                            initModel
-                           (Time.fps 1)
+                           (Time.fps 100)
 
 viewer : Running (Queue (HexModel, List Command), (List Command, Int)) -> Element
 viewer m =

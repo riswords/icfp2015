@@ -57,7 +57,8 @@ bfStep queue curBest =
               else let newStates = generateNextStates model commList
                        newScores : List (List Command, Int)
                        newScores = computeNewScores newStates
-                   in  More ((safelyEnqueue nq newStates), (findBest curBest newScores))
+                   in  More ((enqueueAll nq newStates), (findBest curBest newScores))
+--                 in  More ((safelyEnqueue nq newStates), (findBest curBest newScores))
 
 -- breadthFirst : HexModel -> List Command
 -- breadthFirst state = 
