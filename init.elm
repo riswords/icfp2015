@@ -2,7 +2,7 @@ module Init where
 
 import DataStructs exposing (..)
 import Util        exposing (..)
-import List        exposing (repeat, map, take, drop, foldr, (::), append, head, tail)
+import List        exposing (repeat, map, take, drop, foldr, (::), append, head, tail, length)
 import Rand        exposing (next)
 
 initGrid : Int -> Int -> Grid
