@@ -41,17 +41,17 @@ getGridHeight = length
 getGridWidth : Grid -> Int
 getGridWidth = length << withDefault [] << head
 
-                           -- X, Y (row, column)
+                           -- X, Y (col, row)
 cellToOffset : HexCell -> (Int, Int)
-cellToOffset {x, y, z} = (z, x + ((z - (z % 2)) // 2))
+cellToOffset {x, y, z} = (x + ((z - (z % 2)) // 2), z)
 
 unitToCoordinates : HexUnit -> List (Int, Int)
 unitToCoordinates {members, location} = 
-  let (rowOff, colOff) = cellToOffset location
+  let (colOff, rowOff) = cellToOffset location
   in  map
         (\ m ->  
-          let (r, c) = cellToOffset m
-          in  (r + rowOff, c + colOff)) 
+          let (c, r) = cellToOffset m
+          in  (c + colOff, r + rowOff))
         members
 
 offsetToCell : (Int, Int) -> HexCell
