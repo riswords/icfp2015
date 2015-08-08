@@ -3,22 +3,22 @@ module Search where
 import Queue       exposing (..)
 import DataStructs exposing (..)
 import Update      exposing (update)
-import List        exposing ((::), map, sortWith, foldl, any, take, filter)
+import List        exposing ((::), map, sortWith, foldl, any, take, filter, length)
 import Trampoline  exposing (..)
 import Debug       exposing (watch)
 
 generateNextStates : HexModel -> List Command -> List (HexModel, List Command)
 generateNextStates model history = 
   map (\ x -> (update x model, x :: history)) <| 
-    filter (\ x -> not <| isCycle x history) [E,W,SW,SE,CW,CCW]
+    filter (\ x -> not (isCycle x history)) [E,W,SW,SE,CW,CCW]
 
 isCycle : Command -> List Command -> Bool
 isCycle command history =
   case command of
     E   -> went W 10 history 
     W   -> went E 10 history
-    CW  -> went CCW 10 history 
-    CCW -> went CW 10 history
+    CW  -> went CCW 10 history ||  (length (filter (\ x -> x == CW) history)  > 5) 
+    CCW -> went CW 10 history  ||  (length (filter (\ x -> x == CCW) history) > 5) 
     _   -> False
 
 went : a -> Int -> List a -> Bool
@@ -26,6 +26,21 @@ went a n = any (\ x -> x == a) << take n
 
 type Running a = Done a
                | More a
+
+modelInQueue : Queue (HexModel, List Command) -> (HexModel, List Command) -> Bool
+modelInQueue (top, bottom) (model, comm) =
+  let cmp = \ (m, c) -> m == model
+  in  any cmp top || any cmp bottom
+
+safelyEnqueue : Queue (HexModel, List Command) -> 
+                List (HexModel, List Command) ->
+                Queue (HexModel, List Command)
+safelyEnqueue queue models =
+  case models of
+    []      -> queue
+    (m::ms) -> if modelInQueue queue m
+               then safelyEnqueue queue ms
+               else safelyEnqueue (push queue m) ms
 
 bfStep : Queue (HexModel, List Command) -> 
          (List Command, Int) -> 
@@ -42,7 +57,7 @@ bfStep queue curBest =
               else let newStates = generateNextStates model commList
                        newScores : List (List Command, Int)
                        newScores = computeNewScores newStates
-                   in  More ((enqueueAll nq newStates), (findBest curBest newScores))
+                   in  More ((safelyEnqueue nq newStates), (findBest curBest newScores))
 
 -- breadthFirst : HexModel -> List Command
 -- breadthFirst state = 
