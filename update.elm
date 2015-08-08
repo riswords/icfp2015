@@ -81,7 +81,8 @@ spawnNewUnit model =
     let (randInt, seed') = next model.sourceSeed
         numUnitChoices = length model.units
         newUnit = getUnit (randInt % numUnitChoices) model.units
-        spawnSuccess = isUnitSafe model.grid newUnit
+        locatedUnit = moveToCenter model.grid newUnit
+        spawnSuccess = isUnitSafe locatedUnit
     in { model
         | unit <- moveToCenter model.grid newUnit
         , sourceSeed <- seed'
