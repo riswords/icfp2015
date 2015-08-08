@@ -37,5 +37,3 @@ looper = \ () ->
                            initModel
                            (Time.fps 1)
 
-
-

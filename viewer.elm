@@ -32,7 +32,7 @@ oneHexHeight = hexRadius * 2 * 0.80
 xoffset      = 0
 yoffset      = 0
 
-evenOffset n = if (n % 2 == 1) then (oneHexWidth / 2) else 0
+evenOffset n = if (n % 2 == 0) then (oneHexWidth / 2) else 0
 
 -- Drawers
 drawUnit : Float -> Float -> HexUnit -> List Form
@@ -50,7 +50,6 @@ drawUnit h w unit =
                               |> rotate (degrees 30)
                               |> move (computeXY row hex)
   in  List.append (List.map unitNGon coords) [centerDot]
-
 
 showModel : HexModel -> List Command -> Element
 showModel model commands = 
