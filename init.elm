@@ -2,8 +2,10 @@ module Init where
 
 import DataStructs exposing (..)
 import Util        exposing (..)
+import Update      exposing (spawnNewUnit)
 import List        exposing (repeat, map, take, drop, foldr, (::), append, head, tail, length)
 import Rand        exposing (next)
+import Hex         exposing (setXYCell)
 
 initGrid : Int -> Int -> Grid
 initGrid width height = repeat height (repeat width Empty)
@@ -12,7 +14,6 @@ convertUnit : Unit -> HexUnit
 convertUnit {members, pivot} = 
     let hexMembers : List HexCell
         hexMembers = map (convertCell pivot) members
-
         origin : HexCell
         origin = convertCell { x = 0, y = 0 } pivot
     in { members = hexMembers
@@ -30,29 +31,20 @@ convertCell pivot cell =
        }
 
 fillCell : Cell -> Grid -> Grid
-fillCell {x, y} g = 
-  let l1          = take y g
-      (row::rest) = drop y g
-      rowPrefix   = take x row
-      rowSuffix   = drop (x+1) row
-  in append l1 <| (append rowPrefix (Filled :: rowSuffix)) :: rest
+fillCell {x, y} g = setXYCell x y g Filled
 
 initGameState : Input -> List HexModel
 initGameState {id, units, width, height, filled, sourceLength, sourceSeeds} =
   map 
     (\ s -> 
-      let (randInt, seed') = next s
-          hexUnits = map convertUnit units
-      in
-        { id           = id
-        , units        = hexUnits
-        , unit         = getUnit (randInt % (length hexUnits)) hexUnits
-        , grid         = foldr fillCell (initGrid width height) filled
-        , sourceLength = sourceLength
-        , sourceSeed   = seed'
-        , score        = 0
-        , prevLines    = 0
-        , isGameOver   = False
-        })
+      { id           = id
+      , units        = map convertUnit units
+      , unit         = HexUnit [] <| HexCell 0 0 0 -- Dummpy Unit
+      , grid         = foldr fillCell (initGrid width height) filled
+      , sourceLength = sourceLength
+      , sourceSeed   = s
+      , score        = 0
+      , prevLines    = 0
+      , isGameOver   = False
+      } |> spawnNewUnit )
     sourceSeeds
-

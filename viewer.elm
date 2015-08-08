@@ -6,11 +6,11 @@ import Text exposing (fromString, monospace)
 import Color exposing (..)
 import List exposing (indexedMap, (::))
 
-import Util exposing (getGridHeight, getGridWidth, unitToCoordinates, cellToOffset)
+import Hex         exposing (getGridHeight, getGridWidth, unitToCoordinates, cellToOffset)
 import DataStructs exposing (..)
 import Search      exposing (..)
 import Queue       exposing (push, empty, Queue, peek)
-
+import Util        exposing (..)
 
 viewer : Running (Queue (HexModel, List Command), (List Command, Int)) -> Element
 viewer m =
@@ -81,11 +81,3 @@ showModel model commands =
 
 renderString = centered << monospace << fromString
 
-clearGrey : Color
-clearGrey = rgba 160 160 160 1.0
-yeller : Color
-yeller = rgba 230 184 0 1.0
-uniter : Color
-uniter = rgba 46 184 230 1.0
-unitCenter : Color
-unitCenter = rgba 25 117 209 1.0

@@ -25,9 +25,13 @@ import Viewer exposing (viewer)
 main : Signal Element
 main = looper ()
 
+-- Broken things:
+-- Rotation can do something catostrophic in test2
+-- The visualizer in test1 sets the falling hex off-center. Also, the 'i' is screwed up.
+
 looper : () -> Signal Element
 looper = \ () ->
-  let init = withDefault emptyModel <| head (initGameState (fromJson test0))
+  let init = withDefault emptyModel <| head (initGameState (fromJson test1))
       initModel : Running (Queue (HexModel, List Command), (List Command, Int)) 
       initModel = More ((push empty (init, [])),([], 0))
   in  Signal.map viewer  <| Signal.foldp 
@@ -35,5 +39,5 @@ looper = \ () ->
                                        Done _            -> m
                                        More (queue,best) -> bfStep queue best)
                            initModel
-                           (Time.fps 1)
+                           (Time.fps 15)
 
