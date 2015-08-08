@@ -42,15 +42,13 @@ moveUnit : Grid -> Command -> HexUnit -> (Bool, HexUnit)
 moveUnit grid direction unit =
     let newMembers : List (Bool, HexCell)
         newMembers = map (moveCell grid direction) unit.members
-
         newLoc : HexCell
         newLoc = snd (moveCell grid direction unit.location)
-
         didMove = all ((==) True) (map fst newMembers)
     in if didMove
         then (didMove, { unit 
-                        | members <- map snd newMembers
-                        , location <- newLoc
+                        | location <- newLoc
+                   --   , members <- map snd newMembers
                         })
         else (didMove, unit)
 

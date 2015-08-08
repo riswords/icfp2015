@@ -64,42 +64,39 @@ update move model =
           in  updateScore newModel lineClear updUnit |> lockUnit updUnit |> spawnNewUnit
      else { model | unit <- updUnit }
 
-
 lockUnit : HexUnit -> HexModel -> HexModel
 lockUnit unit model =
-  let offset = unit.location
-      absLocs = map (\c -> HexCell (c.x + offset.x) (c.y + offset.y) (c.z + offset.z)) unit.members
-      --absOffsets = map cellToOffset absLocs
+  let offset            = unit.location
+      absLocs           = map (\c -> HexCell (c.x + offset.x) (c.y + offset.y) (c.z + offset.z)) unit.members
+      --absOffsets      = map cellToOffset absLocs
       updater cell grid = setCell cell.x cell.y cell.z grid Filled
-      updatedGrid = foldl updater model.grid absLocs
+      updatedGrid       = foldl updater model.grid absLocs
   in { model | grid <- updatedGrid }
-
 
 -- duplicated logic in init.elm, keep in sync
 spawnNewUnit : HexModel -> HexModel
 spawnNewUnit model = 
     let (randInt, seed') = next model.sourceSeed
-        numUnitChoices = length model.units
-        newUnit = getUnit (randInt % numUnitChoices) model.units
-        spawnSuccess = isUnitSafe model.grid newUnit
+        newUnit          = getUnit (randInt % length model.units) model.units
+        spawnSuccess     = isUnitSafe model.grid newUnit
     in { model
-        | unit <- moveToCenter model.grid newUnit
-        , sourceSeed <- seed'
-        , isGameOver <- spawnSuccess
-        }
+       | unit       <- moveToCenter model.grid newUnit
+       , sourceSeed <- seed'
+       , isGameOver <- not spawnSuccess
+       }
 
 moveToCenter : Grid -> HexUnit -> HexUnit
 moveToCenter grid unit = 
-    let coords = map cellToOffset unit.members
-        xes = map fst coords
-        ys = map snd coords
-        minX = withDefault 0 (minimum xes)
-        maxX = withDefault 0 (maximum xes)
-        minY = withDefault 0 (minimum ys)
+    let coords       = map cellToOffset unit.members
+        xes          = map fst coords
+        ys           = map snd coords
+        minX         = withDefault 0 (minimum xes)
+        maxX         = withDefault 0 (maximum xes)
+        minY         = withDefault 0 (minimum ys)
         (curX, curY) = cellToOffset unit.location
-        width = getGridWidth grid
-        newY = curY - minY
-        newMinX = ((width - maxX) + minX) // 2
-        newX = curX - (minX - newMinX)
+        width        = getGridWidth grid
+        newY         = curY - minY
+        newMinX      = ((width - maxX) + minX) // 2
+        newX         = curX - (minX - newMinX)
     in { unit | location <- (offsetToCell (newX, newY))}
 

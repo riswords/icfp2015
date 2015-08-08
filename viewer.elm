@@ -39,7 +39,7 @@ drawUnit : Float -> Float -> HexUnit -> List Form
 drawUnit h w unit =
   let coords              = unitToCoordinates unit
       computeXY row  hex  = ((toFloat hex) * oneHexWidth + (evenOffset (row + 1)),
-                              ((h - 1) - (toFloat row)) * oneHexHeight)
+                             ((h - 1) - (toFloat row)) * oneHexHeight)
       centerDot           = let (hex, row) = cellToOffset unit.location 
                                 (x, y)     = computeXY row hex
                             in circle circleRadius
@@ -74,7 +74,7 @@ showModel model commands =
     in flow up
             [ collage collageWidth collageHeight 
                       [move collageOffset (group (List.append ngons unitgons))]
-            -- , flow right [renderString  "Unit: ", show model.unit]
+            , flow right [renderString "Unit: ", show model.unit]
             , flow right [renderString "Score: ", show model.score]
             , flow right <| (renderString "Moves: " :: (List.map show commands))
             ]
