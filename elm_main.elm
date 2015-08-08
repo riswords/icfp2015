@@ -11,19 +11,19 @@ import List        exposing (map, take, head)
 import Queue       exposing (push, empty, Queue, peek)
 import DataStructs exposing (..)
 import Maybe       exposing (..)
+import Graphics.Element exposing (Element)
 
 import Time
 import Debug  exposing (watch)
 
-import Text
-import Graphics.Element exposing (Element, show)
+import Viewer exposing (viewer)
 
 -- port output : Signal String
 -- port output = Signal.map toString (Time.every Time.second)
 
 -- Nasty hack to make the compiler happy
-main : Element
-main = show <| isCycle E [E,E,E,CW]
+main : Signal Element
+main = looper ()
 
 
 
@@ -39,12 +39,5 @@ looper = \ () ->
                            initModel
                            (Time.fps 1)
 
-viewer : Running (Queue (HexModel, List Command), (List Command, Int)) -> Element
-viewer m =
-  case m of
-    (More (queue, best)) -> hexView (peek queue)
-    (Done (queue, best)) -> hexView (peek queue) 
 
-hexView : Maybe (HexModel, List Command) -> Element
-hexView = show
 
