@@ -35,10 +35,7 @@ looper = \ () ->
   let init = withDefault emptyModel <| head (initGameState (fromJson test2))
       initModel : Running (Queue (HexModel, List Command), (List Command, Int)) 
       initModel = More ((push empty (init, [])),([], 0))
-  in  Signal.map viewer  <| Signal.foldp 
-                           (\ i m -> case m of
-                                       Done _            -> m
-                                       More (queue,best) -> bfStep queue best)
+  in  Signal.map viewer  <| Signal.foldp (\ i m -> m) 
                            initModel
                            (Time.fps 3)
 
