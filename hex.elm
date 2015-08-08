@@ -1,7 +1,7 @@
 module Hex where
 
 import DataStructs exposing (..)
-import List exposing (map, any)
+import List exposing (map, all)
 import Util exposing (getCell)
 
 rotateUnit : Grid -> Command -> HexUnit -> (Bool, HexUnit)
@@ -12,7 +12,7 @@ rotateUnit grid direction unit =
                         CCW -> map (rotateCellCCW grid) unit.members
                         _   -> map (\c -> (False, c)) unit.members
 
-        didRotate = any ((==) True) (map fst newMembers)
+        didRotate = all ((==) True) (map fst newMembers)
     in (didRotate, { unit | members <- map snd newMembers })
 
 rotateCellCW : Grid -> HexCell -> (Bool, HexCell)
@@ -30,7 +30,6 @@ rotateCellCCW grid { x, y, z } =
     in if isSafe
             then (isSafe, newLoc)
             else (isSafe, HexCell x y z)
-    
 
 isCellSafe : Grid -> HexCell -> Bool
 isCellSafe grid {x, y, z} = 
@@ -47,7 +46,7 @@ moveUnit grid direction unit =
         newLoc : HexCell
         newLoc = snd (moveCell grid direction unit.location)
 
-        didMove = any ((==) True) (map fst newMembers)
+        didMove = all ((==) True) (map fst newMembers)
     in if didMove
         then (didMove, { unit 
                         | members <- map snd newMembers
@@ -76,3 +75,12 @@ isRotateCommand c =
     CCW -> True
     _   -> False
 
+
+isUnitSafe : Grid -> HexUnit -> Bool
+isUnitSafe grid unit = 
+    let offset = unit.location
+        isCellReallySafe cell = HexCell (cell.x + offset.x) 
+                                        (cell.y + offset.y)
+                                        (cell.z + offset.z)
+                                    |> isCellSafe grid
+    in all ((==) True) (map isCellReallySafe unit.members)
