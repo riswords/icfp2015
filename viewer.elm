@@ -12,11 +12,11 @@ import Search      exposing (..)
 import Queue       exposing (push, empty, Queue, peek)
 import Util        exposing (..)
 
-viewer : (HexModel, List Command) -> Element
-viewer m = hexView m
+viewer : (HexModel, List Command, Int) -> Element
+viewer = hexView 
 
-hexView : (HexModel, List Command) -> Element
-hexView (hexModel, commandHistory) = showModel hexModel commandHistory
+hexView : (HexModel, List Command, Int) -> Element
+hexView (hexModel, commandHistory, avgScore) = showModel hexModel commandHistory avgScore
 
 -- Just some important values
 hexRadius    = 20
@@ -45,8 +45,8 @@ drawUnit h w unit =
                               |> move (computeXY col row)
   in  List.append (List.map unitNGon coords) [centerDot]
 
-showModel : HexModel -> List Command -> Element
-showModel model commands = 
+showModel : HexModel -> List Command -> Int -> Element
+showModel model commands avgScore = 
     let gridWidth = toFloat <| getGridWidth model.grid
         gridHeight = toFloat <| getGridHeight model.grid
         makeHexagon rownum colnum val =
@@ -67,6 +67,7 @@ showModel model commands =
     in flow down
             [ flow right <| (renderString "Moves: " :: (List.map show <| take 10 commands))
             , flow right [renderString "Score: ", show model.score]
+            , flow right [renderString "Average Score: ", show avgScore]
             , flow right [renderString "Unit Loction: ", show (cellToOffset model.unit.location)]
             , flow right [renderString "Unit Members: ", show (unitToCoordinates model.unit)]
             , collage collageWidth collageHeight 

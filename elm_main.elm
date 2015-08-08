@@ -33,14 +33,14 @@ main = looper ()
 
 looper : () -> Signal Element
 looper = \ () ->
-  let init         = withDefault emptyModel <| head (initGameState (fromJson test1))
-      samplePlayer = hatchDecentPlayer init 100
-      commands     = List.reverse <| (.history samplePlayer.model)
+  let init                     = withDefault emptyModel <| head (initGameState (fromJson test6))
+      (samplePlayer, avgScore) = hatchDecentPlayer init 250
+      commands                 = List.reverse <| (.history samplePlayer.model)
   in  Signal.map viewer  <| Signal.foldp
-                             (\ i (m, commands) ->
+                             (\ i (m, commands, avg) ->
                                case commands of
-                                 []      -> (m, commands)
-                                 (c::cs) -> (update c m, cs))
-                             (init, commands) 
+                                 []      -> (m, commands, avg)
+                                 (c::cs) -> (update c m, cs, avg))
+                             (init, commands, avgScore) 
                              (Time.fps 200)
 

@@ -26,6 +26,14 @@ splitOn a ls =
                      else helper a xs (x::seen)
   in helper a ls []
 
+removeFirst : a -> List a -> List a
+removeFirst a ls =
+  case ls of
+    []      -> []
+    (x::xs) -> if x == a
+               then xs
+               else x :: removeFirst a xs
+
 ------------------------------------------------------------------
 -- A few colors
 clearGrey : Color -- Empty Hexes

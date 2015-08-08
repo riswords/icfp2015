@@ -57,6 +57,8 @@ type alias HexModel =
     , score        : Int
     , prevLines    : Int
     , history      : List Command
+    , width        : Int
+    , height       : Int
     }
 
 -----------------------------------------
