@@ -73,7 +73,8 @@ showModel model commands =
     in flow down
             [ flow right <| (renderString "Moves: " :: (List.map show commands))
             , flow right [renderString "Score: ", show model.score]
-            , flow right [renderString "Unit: ", show (unitToCoordinates model.unit)]
+            , flow right [renderString "Unit Loction: ", show (cellToOffset model.unit.location)]
+            , flow right [renderString "Unit Members: ", show (unitToCoordinates model.unit)]
             , collage collageWidth collageHeight 
                       [move collageOffset (group (List.append hexagons unitgons))]
             ]
