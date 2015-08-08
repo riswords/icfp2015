@@ -53,3 +53,10 @@ unitToCoordinates {members, location} =
           let (r, c) = cellToOffset m
           in  (r + rowOff, c + colOff)) 
         members
+
+offsetToCell : (Int, Int) -> HexCell
+offsetToCell (col, row) = 
+    let x = col - ((row - (row % 2)) // 2)
+        z = row
+        y = (-x) - z
+    in HexCell x y z

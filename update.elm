@@ -1,7 +1,8 @@
 module Update where
 
 import DataStructs exposing (..)
-import List        exposing (all, repeat, map, length, sum, foldr, length, append)
+import List        exposing (all, repeat, map, length, sum, foldr, length, append, minimum, maximum)
+import Maybe       exposing (withDefault)
 import Util        exposing (..)
 import Hex         exposing (rotateUnit, moveUnit, isRotateCommand)
 import Rand        exposing (next)
@@ -73,6 +74,22 @@ spawnNewUnit model =
         numUnitChoices = length model.units
         newUnit = getUnit (randInt % numUnitChoices) model.units
     in { model
-        | unit <- newUnit
+        | unit <- moveToCenter model.grid newUnit
         , sourceSeed <- seed'
         }
+
+moveToCenter : Grid -> HexUnit -> HexUnit
+moveToCenter grid unit = 
+    let coords = map cellToOffset unit.members
+        xes = map fst coords
+        ys = map snd coords
+        minX = withDefault 0 (minimum xes)
+        maxX = withDefault 0 (maximum xes)
+        minY = withDefault 0 (minimum ys)
+        (curX, curY) = cellToOffset unit.location
+        width = getGridWidth grid
+        newY = curY - minY
+        newMinX = ((width - maxX) + minX) // 2
+        newX = curX - (minX - newMinX)
+    in { unit | location <- (offsetToCell (newX, newY))}
+
