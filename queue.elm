@@ -14,7 +14,7 @@ isEmpty q =
     _        -> False
 
 push : Queue a -> a -> Queue a
-push (fst, snd) x = (fst, x::snd)
+push (top, bot) x = (top, x::bot)
 
 pop : Queue a -> (Queue a, Maybe a)
 pop q = 

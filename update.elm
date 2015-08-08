@@ -95,5 +95,7 @@ moveToCenter grid unit =
         newY         = curY - minY
         newMinX      = ((width - maxX) + minX) // 2
         newX         = curX - (minX - newMinX)
-    in relativeUnitToAbs <| { unit | location <- (offsetToCell (newX, newY))}
-
+        cellOffset   = offsetToCell (newX, newY)
+    in { members  = map (offsetBy cellOffset) unit.members
+       , location = offsetBy cellOffset unit.location
+       }

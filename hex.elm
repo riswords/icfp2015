@@ -84,8 +84,11 @@ relativeUnitToAbs : HexUnit -> HexUnit
 relativeUnitToAbs {members, location} = 
   HexUnit (map (offsetBy location) members) location
 
-unitToCoordinates : HexUnit -> List (Int, Int)
-unitToCoordinates {members, location} = map cellToOffset members
+unitToCoordinates : HexUnit -> HexUnit
+unitToCoordinates {members, location} = 
+    { members = map cellToOffset members
+    , location = cellToOffset location
+    }
 
 ---------------------------------------------------------------------------------
 -- Cell Rotation and Movement
