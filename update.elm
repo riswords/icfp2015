@@ -66,7 +66,7 @@ update move model =
 lockUnit : HexUnit -> HexModel -> HexModel
 lockUnit unit model =
   let updater cell grid = setCell cell.x cell.y cell.z grid Filled
-      updatedGrid       = foldl updater model.grid <| unitToAbsLocs unit
+      updatedGrid       = foldl updater model.grid unit.members
   in { model | grid <- updatedGrid }
 
 -- duplicated logic in init.elm, keep in sync
@@ -95,5 +95,5 @@ moveToCenter grid unit =
         newY         = curY - minY
         newMinX      = ((width - maxX) + minX) // 2
         newX         = curX - (minX - newMinX)
-    in { unit | location <- (offsetToCell (newX, newY))}
+    in relativeUnitToAbs <| { unit | location <- (offsetToCell (newX, newY))}
 

@@ -62,15 +62,6 @@ getUnit i ls = withDefault (HexUnit [] (HexCell 0 0 0)) (get i ls)
 cellToOffset : HexCell -> (Int, Int)
 cellToOffset {x, y, z} = (x + ((z - (z % 2)) // 2), z)
 
-unitToCoordinates : HexUnit -> List (Int, Int)
-unitToCoordinates {members, location} = 
-  let (colOff, rowOff) = cellToOffset location
-  in  map
-        (\ m ->  
-          let (c, r) = cellToOffset m
-          in  (c + colOff, r + rowOff))
-        members
-
 offsetToCell : (Int, Int) -> HexCell
 offsetToCell (col, row) = 
     let x = col - ((row - (row % 2)) // 2)
@@ -81,19 +72,30 @@ offsetToCell (col, row) =
 offsetBy : HexCell -> HexCell -> HexCell
 offsetBy offset {x,y,z} = HexCell (x + offset.x) (y + offset.y) (z + offset.z)
 
-toAbsLocs : HexCell -> List HexCell -> List HexCell
-toAbsLocs offset = map (offsetBy offset)
+unitToRelativeUnit : HexUnit -> HexUnit
+unitToRelativeUnit {members, location} =
+  let x = location.x
+      y = location.y
+      z = location.z
+  in HexUnit (map (offsetBy <| HexCell -x -y -z) members) 
+             (HexCell x y z)
 
-unitToAbsLocs : HexUnit -> List HexCell
-unitToAbsLocs {members, location} = toAbsLocs location members
+relativeUnitToAbs : HexUnit -> HexUnit
+relativeUnitToAbs {members, location} = 
+  HexUnit (map (offsetBy location) members) location
+
+unitToCoordinates : HexUnit -> List (Int, Int)
+unitToCoordinates {members, location} = map cellToOffset members
 
 ---------------------------------------------------------------------------------
 -- Cell Rotation and Movement
 rotateUnit : Grid -> Command -> HexUnit -> (Bool, HexUnit)
-rotateUnit grid direction unit = 
-    let newMembers = map (rotateCell direction) unit.members
-        didRotate  = all (isCellSafe grid) <| toAbsLocs unit.location newMembers
-    in (didRotate, { unit | members <- if didRotate then newMembers else unit.members })    
+rotateUnit grid direction unit =
+    let relUnit = unitToRelativeUnit unit
+        newMembers   = map (rotateCell direction) relUnit.members
+        absUnit      = relativeUnitToAbs {members = newMembers, location = unit.location}
+        didRotate  = all (isCellSafe grid) <| absUnit.members
+    in (didRotate, if didRotate then absUnit else unit)    
 
 rotateCell : Command -> HexCell -> HexCell
 rotateCell direction {x, y, z} =
@@ -104,19 +106,19 @@ rotateCell direction {x, y, z} =
 
 moveUnit : Grid -> Command -> HexUnit -> (Bool, HexUnit)
 moveUnit grid direction unit =
-    let newMembers = map (moveCell direction << offsetBy unit.location) unit.members
-        newLoc     = moveCell direction unit.location
-        didMove    = all (isCellSafe grid) <| newLoc :: newMembers
-    in (didMove, { unit | location <- if didMove then newLoc else unit.location})
+    let newLoc     = moveCell direction unit.location
+        newMembers = map (moveCell direction) unit.members
+        didMove    = all (isCellSafe grid) <| newMembers
+    in (didMove, if didMove then HexUnit newMembers newLoc else unit)
 
 moveCell : Command -> HexCell -> HexCell
 moveCell direction {x, y, z} =
   case direction of
      E  -> HexCell (x + 1) (y - 1) z
      W  -> HexCell (x - 1) (y + 1) z
-     SE -> HexCell x (y - 1) (z + 1)
-     SW -> HexCell (x - 1) y (z + 1)
-     _  -> HexCell x y z
+     SE -> HexCell x       (y - 1) (z + 1)
+     SW -> HexCell (x - 1)  y      (z + 1)
+     _  -> HexCell x        y      z
 
 isRotateCommand : Command -> Bool
 isRotateCommand c =
@@ -134,12 +136,5 @@ isCellSafe grid {x, y, z} =
         Just Filled -> False
         Just Empty  -> True
 
-
 isUnitSafe : Grid -> HexUnit -> Bool
-isUnitSafe grid unit = 
-    let offset = unit.location
-        isCellReallySafe cell = HexCell (cell.x + offset.x) 
-                                        (cell.y + offset.y)
-                                        (cell.z + offset.z)
-                                    |> isCellSafe grid
-    in all ((==) True) (map isCellReallySafe unit.members)
+isUnitSafe grid unit = all (isCellSafe grid) unit.members
