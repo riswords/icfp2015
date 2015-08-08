@@ -69,7 +69,6 @@ lockUnit : HexUnit -> HexModel -> HexModel
 lockUnit unit model =
   let offset = unit.location
       absLocs = map (\c -> HexCell (c.x + offset.x) (c.y + offset.y) (c.z + offset.z)) unit.members
-      --absOffsets = map cellToOffset absLocs
       updater cell grid = setCell cell.x cell.y cell.z grid Filled
       updatedGrid = foldl updater model.grid absLocs
   in { model | grid <- updatedGrid }
@@ -82,9 +81,9 @@ spawnNewUnit model =
         numUnitChoices = length model.units
         newUnit = getUnit (randInt % numUnitChoices) model.units
         locatedUnit = moveToCenter model.grid newUnit
-        spawnSuccess = isUnitSafe locatedUnit
+        spawnSuccess = isUnitSafe model.grid locatedUnit
     in { model
-        | unit <- moveToCenter model.grid newUnit
+        | unit <- locatedUnit
         , sourceSeed <- seed'
         , isGameOver <- spawnSuccess
         }
