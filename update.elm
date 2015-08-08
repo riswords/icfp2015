@@ -4,7 +4,7 @@ import DataStructs exposing (..)
 import List        exposing (all, repeat, map, length, sum, foldr, length, append, minimum, maximum)
 import Maybe       exposing (withDefault)
 import Util        exposing (..)
-import Hex         exposing (rotateUnit, moveUnit, isRotateCommand)
+import Hex         exposing (rotateUnit, moveUnit, isRotateCommand, isUnitSafe)
 import Rand        exposing (next)
 
 -- Model -> (Model, # of Cleared Lines)
@@ -73,9 +73,11 @@ spawnNewUnit model =
     let (randInt, seed') = next model.sourceSeed
         numUnitChoices = length model.units
         newUnit = getUnit (randInt % numUnitChoices) model.units
+        spawnSuccess = isUnitSafe model.grid newUnit
     in { model
         | unit <- moveToCenter model.grid newUnit
         , sourceSeed <- seed'
+        , isGameOver <- spawnSuccess
         }
 
 moveToCenter : Grid -> HexUnit -> HexUnit
