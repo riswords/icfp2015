@@ -39,3 +39,8 @@ looper = \ () ->
                            initModel
                            (Time.fps 3)
 
+--                            (\ i m -> case m of
+--                                        Done _            -> m
+--                                        More (queue,best) -> bfStep queue best)
+
+

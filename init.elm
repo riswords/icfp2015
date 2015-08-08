@@ -22,7 +22,7 @@ convertUnit {members, pivot} =
 
 convertCell : Cell -> Cell -> HexCell
 convertCell pivot cell = 
-    let (relCol, relRow) = (cell.x - pivot.x, cell.y - pivot.y)
+    let (relCol, relRow) = (cell.x, cell.y)
         newX = relCol - ((relRow - (relRow % 2)) // 2)
         newZ = relRow
     in { x = newX
