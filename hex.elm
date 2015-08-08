@@ -46,12 +46,6 @@ inBounds grid x y z = case getCell x y z grid of
                         Nothing -> False
                         Just _  -> True
 
-getGridHeight : Grid -> Int
-getGridHeight = length
-
-getGridWidth : Grid -> Int
-getGridWidth = length << withDefault [] << head
-
 getUnit : Int -> List HexUnit -> HexUnit
 getUnit i ls = withDefault (HexUnit [] (HexCell 0 0 0)) (get i ls)
 

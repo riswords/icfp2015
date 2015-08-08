@@ -138,7 +138,7 @@ hatchDecentPlayer : HexModel -> Int -> (Ei, Int)
 hatchDecentPlayer init size = 
   let gen      = GenSet (int 0 5) (initialSeed 31415)
       evolver  = evolve init
-      finalPop = fst (foldl (\ i eg -> evolver eg) (generatePopulace init gen size) [1..100])
+      finalPop = fst (foldl (\ i eg -> evolver eg) (generatePopulace init gen size) [1..2])
   in  (findBest finalPop (Ei init gen) , computeAverageScore finalPop)
 
 computeAverageScore : Eier -> Int

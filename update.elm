@@ -14,7 +14,7 @@ clearRows model =
             (\row (ls, i) -> if all filled row then (ls, i+1) else (row :: ls, i))
             ([], 0)
             model.grid
-    in ( { model | grid <- padN clearedRows (repeat (getGridWidth grid) Empty) grid }
+    in ( { model | grid <- padN clearedRows (repeat model.width Empty) grid }
          , clearedRows
        )
 
@@ -69,7 +69,7 @@ spawnNewUnit : HexModel -> HexModel
 spawnNewUnit model = 
     let (randInt, seed') = next model.sourceSeed
         newUnit          = getUnit (randInt % length model.units) model.units
-        locatedUnit      = moveToCenter model.grid newUnit
+        locatedUnit      = moveToCenter model newUnit
         spawnSuccess     = isUnitSafe model.grid locatedUnit
     in { model
        | unit       <- locatedUnit
@@ -78,16 +78,17 @@ spawnNewUnit model =
        , history    <- P :: model.history
        }
 
-moveToCenter : Grid -> HexUnit -> HexUnit
-moveToCenter grid unit = 
-    let coords       = map cellToOffset unit.members
+moveToCenter : HexModel -> HexUnit -> HexUnit
+moveToCenter model unit = 
+    let grid        = model.grid 
+        coords       = map cellToOffset unit.members
         xes          = map fst coords
         ys           = map snd coords
         minX         = withDefault 0 (minimum xes)
         maxX         = withDefault 0 (maximum xes)
         minY         = withDefault 0 (minimum ys)
         (curX, curY) = cellToOffset unit.location
-        width        = getGridWidth grid - 1
+        width        = model.width - 1
         idealOffset  = ((width - maxX) + minX) // 2
         offsetX      = idealOffset - minX 
         offsetY      = curY - (curY - minY)

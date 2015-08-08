@@ -46,5 +46,7 @@ initGameState {id, units, width, height, filled, sourceLength, sourceSeeds} =
       , prevLines    = 0
       , isGameOver   = False
       , history      = []
+      , width        = width
+      , height       = height
       } |> spawnNewUnit )
     sourceSeeds

@@ -14,6 +14,8 @@ emptyModel =
     , score        = 0
     , prevLines    = 0
     , history      = []
+    , width        = 0
+    , height       = 0
     }
 
 test0 = """

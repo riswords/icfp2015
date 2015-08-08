@@ -6,7 +6,7 @@ import Text exposing (fromString, monospace)
 import Color exposing (..)
 import List exposing (indexedMap, (::), take)
 
-import Hex         exposing (getGridHeight, getGridWidth, unitToCoordinates, cellToOffset)
+import Hex         exposing (unitToCoordinates, cellToOffset)
 import DataStructs exposing (..)
 import Search      exposing (..)
 import Queue       exposing (push, empty, Queue, peek)
@@ -47,8 +47,8 @@ drawUnit h w unit =
 
 showModel : HexModel -> List Command -> Int -> Element
 showModel model commands avgScore = 
-    let gridWidth = toFloat <| getGridWidth model.grid
-        gridHeight = toFloat <| getGridHeight model.grid
+    let gridWidth  = toFloat model.width
+        gridHeight = toFloat model.height
         makeHexagon rownum colnum val =
           let color   = if val == Empty then clearGrey else yeller
               evenoff = evenOffset rownum
