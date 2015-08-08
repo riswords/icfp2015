@@ -40,12 +40,12 @@ drawUnit h w unit =
   let coords              = unitToCoordinates unit
       computeXY row  hex  = ((toFloat hex) * oneHexWidth + (evenOffset (row + 1)),
                               ((h - 1) - (toFloat row)) * oneHexHeight)
-      centerDot           = let (row, hex) = cellToOffset unit.location 
+      centerDot           = let (hex, row) = cellToOffset unit.location 
                                 (x, y)     = computeXY row hex
                             in circle circleRadius
                                  |> filled unitCenter
                                  |> move (x, y)
-      unitNGon (row, hex) = ngon 6 hexRadius
+      unitNGon (hex, row) = ngon 6 hexRadius
                               |> filled uniter
                               |> rotate (degrees 30)
                               |> move (computeXY row hex)
