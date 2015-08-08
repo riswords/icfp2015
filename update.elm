@@ -9,17 +9,21 @@ import Rand        exposing (next)
 -- Model -> (Model, # of Cleared Lines)
 clearRows : HexModel -> (HexModel, Int)
 clearRows model = 
-    let clearOneRow : List Hex -> (Int, List Hex)
-        clearOneRow row = if all filled row
-                          then (1, map (\ x -> Empty) row)
-                          else (0, row)
-        rows = map clearOneRow model.grid
-    in ( { model | grid <- applyGravity <| map snd rows }
-       , sum <| map fst rows 
+    let (grid, clearedRows) = 
+          foldr 
+            (\row (ls, i) -> if all filled row then (ls, i+1) else (row :: ls, i))
+            ([], 0)
+            model.grid
+    in ( { model | grid <- padN clearedRows (repeat (getGridWidth grid) Empty) grid }
+         , clearedRows
        )
 
-updateScore : HexModel -> Int -> HexUnit -> HexModel
-updateScore model ls unit = 
+padN : Int -> List Hex -> Grid -> Grid
+padN count emptyRow grid = append (repeat count emptyRow) grid
+
+
+updateScore : Int -> HexUnit -> HexModel -> HexModel
+updateScore ls unit model = 
   let size       = length unit.members
       lsOld      = model.prevLines
       points     = size + (100 * (1 + ls) * ls // 2)
@@ -28,23 +32,6 @@ updateScore model ls unit =
                   else 0
   in { model | score     <- model.score + points + lineBonus 
              , prevLines <- ls }
-
-applyGravity : Grid -> Grid
-applyGravity grid = 
-  let gridHeight = getGridHeight grid
-      emptyRow   = repeat (getGridWidth grid ) Empty
-      padTillFull height emptyRow grid = append (repeat (height - getGridHeight grid) emptyRow) grid
-  in
-    padTillFull gridHeight emptyRow <|
-      foldr  
-        (\ x ls -> 
-           case ls of
-             []      -> [x]
-             (y::ys) -> if   all (not << filled) y
-                        then x::ys
-                        else x::y::ys)
-        []
-        grid
 
 updateUnit : Grid -> Command -> HexUnit -> (Bool, HexUnit)
 updateUnit grid command =
@@ -57,11 +44,19 @@ updateUnit grid command =
 -- update the score
 update : Command -> HexModel -> HexModel
 update move model = 
-  let (moveSucceeded, updUnit) = updateUnit model.grid move model.unit
+  let newModel = { model | history <- move :: model.history }
+      (moveSucceeded, updUnit) = updateUnit newModel.grid move newModel.unit
   in if not moveSucceeded
-     then let (newModel, lineClear) = clearRows model 
-          in  updateScore newModel lineClear updUnit |> lockUnit updUnit |> spawnNewUnit
-     else { model | unit <- updUnit }
+     then scoreAndSpawn updUnit newModel
+     else { newModel | unit <- updUnit }
+
+scoreAndSpawn : HexUnit -> HexModel -> HexModel
+scoreAndSpawn updUnit model =
+  let (newModel, lineClear) = clearRows model
+  in newModel
+     |> updateScore lineClear updUnit 
+     |> lockUnit updUnit 
+     |> spawnNewUnit
 
 lockUnit : HexUnit -> HexModel -> HexModel
 lockUnit unit model =
@@ -80,6 +75,7 @@ spawnNewUnit model =
        | unit       <- locatedUnit
        , sourceSeed <- seed'
        , isGameOver <- not spawnSuccess
+       , history    <- P :: model.history
        }
 
 moveToCenter : Grid -> HexUnit -> HexUnit
@@ -91,11 +87,11 @@ moveToCenter grid unit =
         maxX         = withDefault 0 (maximum xes)
         minY         = withDefault 0 (minimum ys)
         (curX, curY) = cellToOffset unit.location
-        width        = getGridWidth grid
-        newY         = curY - minY
-        newMinX      = ((width - maxX) + minX) // 2
-        newX         = curX - (minX - newMinX)
-        cellOffset   = offsetToCell (newX, newY)
+        width        = getGridWidth grid - 1
+        idealOffset  = ((width - maxX) + minX) // 2
+        offsetX      = idealOffset - minX 
+        offsetY      = curY - (curY - minY)
+        cellOffset   = offsetToCell (offsetX, offsetY)
     in { members  = map (offsetBy cellOffset) unit.members
        , location = offsetBy cellOffset unit.location
        }

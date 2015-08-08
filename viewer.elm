@@ -4,7 +4,7 @@ import Graphics.Element exposing (..)
 import Graphics.Collage exposing (..)
 import Text exposing (fromString, monospace)
 import Color exposing (..)
-import List exposing (indexedMap, (::))
+import List exposing (indexedMap, (::), take)
 
 import Hex         exposing (getGridHeight, getGridWidth, unitToCoordinates, cellToOffset)
 import DataStructs exposing (..)
@@ -12,17 +12,11 @@ import Search      exposing (..)
 import Queue       exposing (push, empty, Queue, peek)
 import Util        exposing (..)
 
-viewer : Running (Queue (HexModel, List Command), (List Command, Int)) -> Element
-viewer m =
-  case m of
-    (More (queue, best)) -> hexView (peek queue)
-    (Done (queue, best)) -> hexView (peek queue) 
+viewer : (HexModel, List Command) -> Element
+viewer m = hexView m
 
-hexView : Maybe (HexModel, List Command) -> Element
-hexView maybeStuff =
-    case maybeStuff of
-      Nothing -> show maybeStuff
-      Just (hexModel, commandHistory) -> showModel hexModel commandHistory
+hexView : (HexModel, List Command) -> Element
+hexView (hexModel, commandHistory) = showModel hexModel commandHistory
 
 -- Just some important values
 hexRadius    = 20
@@ -71,7 +65,7 @@ showModel model commands =
         collageOffset = (-1.0 * oneHexWidth * gridWidth * 0.5, 
                          oneHexHeight * gridHeight * 0.5)
     in flow down
-            [ flow right <| (renderString "Moves: " :: (List.map show commands))
+            [ flow right <| (renderString "Moves: " :: (List.map show <| take 10 commands))
             , flow right [renderString "Score: ", show model.score]
             , flow right [renderString "Unit Loction: ", show (cellToOffset model.unit.location)]
             , flow right [renderString "Unit Members: ", show (unitToCoordinates model.unit)]

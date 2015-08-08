@@ -21,10 +21,9 @@ convertUnit {members, pivot} =
        }
 
 convertCell : Cell -> Cell -> HexCell
-convertCell pivot cell = 
-    let (relCol, relRow) = (cell.x, cell.y)
-        newX = relCol - ((relRow - (relRow % 2)) // 2)
-        newZ = relRow
+convertCell pivot {x, y} = 
+    let newX = x - ((y - (y % 2)) // 2)
+        newZ = y
     in { x = newX
        , z = newZ
        , y = (-newX) - newZ
@@ -46,5 +45,6 @@ initGameState {id, units, width, height, filled, sourceLength, sourceSeeds} =
       , score        = 0
       , prevLines    = 0
       , isGameOver   = False
+      , history      = []
       } |> spawnNewUnit )
     sourceSeeds

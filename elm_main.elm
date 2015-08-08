@@ -7,10 +7,11 @@ import IO          exposing (..)
 import Tests       exposing (..)
 import Init        exposing (..)
 import Search      exposing (..)
-import List        exposing (map, take, head)
+import List        exposing (map, take, head, (::))
 import Queue       exposing (push, empty, Queue, peek)
 import DataStructs exposing (..)
 import Maybe       exposing (..)
+import Update      exposing (update)
 import Graphics.Element exposing (Element)
 
 import Time
@@ -32,15 +33,14 @@ main = looper ()
 
 looper : () -> Signal Element
 looper = \ () ->
-  let init = withDefault emptyModel <| head (initGameState (fromJson test2))
-      initModel : Running (Queue (HexModel, List Command), (List Command, Int)) 
-      initModel = More ((push empty (init, [])),([], 0))
-  in  Signal.map viewer  <| Signal.foldp (\ i m -> m) 
-                           initModel
-                           (Time.fps 3)
-
---                            (\ i m -> case m of
---                                        Done _            -> m
---                                        More (queue,best) -> bfStep queue best)
-
+  let init         = withDefault emptyModel <| head (initGameState (fromJson test1))
+      samplePlayer = hatchDecentPlayer init 100
+      commands     = List.reverse <| (.history samplePlayer.model)
+  in  Signal.map viewer  <| Signal.foldp
+                             (\ i (m, commands) ->
+                               case commands of
+                                 []      -> (m, commands)
+                                 (c::cs) -> (update c m, cs))
+                             (init, commands) 
+                             (Time.fps 200)
 

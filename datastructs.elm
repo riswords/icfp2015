@@ -1,13 +1,18 @@
 module DataStructs where
 
+import Random      exposing (int, Generator, Seed, initialSeed)
+
+-----------------------------------------
 type Hex 
     = Empty
     | Filled
 
 type alias HexRow = List Hex
 
+-----------------------------------------
 type alias Grid   = List (List Hex)
 
+-----------------------------------------
 type alias Cell = 
     { x : Int
     , y : Int
@@ -19,6 +24,7 @@ type alias HexCell =
     , z : Int
     }
 
+-----------------------------------------
 type alias Unit = 
     { members :  List Cell
     , pivot : Cell
@@ -29,6 +35,7 @@ type alias HexUnit =
     , location : HexCell
     }
 
+-----------------------------------------
 type Command 
     = CW
     | CCW
@@ -36,7 +43,9 @@ type Command
     | W
     | SE
     | SW
+    | P
 
+-----------------------------------------
 type alias HexModel = 
     { id           : Int
     , units        : List HexUnit
@@ -47,8 +56,10 @@ type alias HexModel =
     , sourceSeed   : Int
     , score        : Int
     , prevLines    : Int
+    , history      : List Command
     }
 
+-----------------------------------------
 type alias Output = 
     { id : Int
     , seed : Int
@@ -65,3 +76,16 @@ type alias Input =
   , sourceLength : Int
   , sourceSeeds  : List Int
   }
+
+-----------------------------------------
+
+type GenSet = GenSet (Generator Int) Seed
+
+type alias Ei = 
+  { model : HexModel 
+  , gen     : GenSet
+  }
+
+type alias Eier = List Ei
+
+
