@@ -37,8 +37,7 @@ evenOffset n = if (n % 2 == 1) then (oneHexWidth / 2) else 0
 -- Drawers
 drawUnit : Float -> Float -> HexUnit -> List Form
 drawUnit h w unit =
-  let unitCoords          = unitToCoordinates unit
-      coords              = unitCoords.members
+  let coords              = unitToCoordinates unit
       computeXY col row   = ((toFloat col) * oneHexWidth + (evenOffset row),
                              -1.0 * (toFloat row) * oneHexHeight)
       centerDot           = let (col, row) = cellToOffset unit.location 
