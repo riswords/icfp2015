@@ -46,7 +46,7 @@ initGameState {id, units, width, height, filled, sourceLength, sourceSeeds} =
       in
         { id           = id
         , units        = hexUnits
-        , unit         = getUnit (randInt % sourceLength) hexUnits
+        , unit         = getUnit (randInt % (length hexUnits)) hexUnits
         , grid         = foldr fillCell (initGrid width height) filled
         , sourceLength = sourceLength
         , sourceSeed   = seed'
