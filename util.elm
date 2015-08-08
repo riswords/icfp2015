@@ -2,7 +2,7 @@ module Util where
 
 import DataStructs exposing (..)
 import Maybe exposing (withDefault)
-import List exposing (head, drop, length)
+import List exposing (head, drop, length, map)
 
 filled : Hex -> Bool
 filled f = 
@@ -41,3 +41,15 @@ getGridHeight = length
 getGridWidth : Grid -> Int
 getGridWidth = length << withDefault [] << head
 
+                           -- X, Y (row, column)
+cellToOffset : HexCell -> (Int, Int)
+cellToOffset {x, y, z} = (z, x + ((z - (z % 2)) // 2))
+
+unitToCoordinates : HexUnit -> List (Int, Int)
+unitToCoordinates {members, location} = 
+  let (rowOff, colOff) = cellToOffset location
+  in  map
+        (\ m ->  
+          let (r, c) = cellToOffset m
+          in  (r + rowOff, c + colOff)) 
+        members

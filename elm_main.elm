@@ -25,8 +25,6 @@ import Viewer exposing (viewer)
 main : Signal Element
 main = looper ()
 
-
-
 looper : () -> Signal Element
 looper = \ () ->
   let init = withDefault emptyModel <| head (initGameState (fromJson test0))

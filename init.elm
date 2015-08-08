@@ -16,8 +16,8 @@ convertUnit {members, pivot} =
         origin : HexCell
         origin = convertCell { x = 0, y = 0 } pivot
     in { members = hexMembers
-        , location = origin
-        }
+       , location = origin
+       }
 
 convertCell : Cell -> Cell -> HexCell
 convertCell pivot cell = 
@@ -25,9 +25,9 @@ convertCell pivot cell =
         newX = relCol - ((relRow - (relRow % 2)) // 2)
         newZ = relRow
     in { x = newX
-        , z = newZ
-        , y = (-newX) - newZ
-        }
+       , z = newZ
+       , y = (-newX) - newZ
+       }
 
 fillCell : Cell -> Grid -> Grid
 fillCell {x, y} g = 
