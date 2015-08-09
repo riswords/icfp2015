@@ -6,10 +6,11 @@ import Update      exposing (update)
 import Trampoline  exposing (..)
 import Debug       exposing (watch)
 import Util        exposing (removeFirst, splitOn)
+import Hex         exposing (getXYCell)
 import Random      exposing (int, Generator, Seed, initialSeed, generate)
-import Array       exposing (fromList, get, Array, foldr, indexedMap, empty)
+import Array       exposing (fromList, get, Array, indexedMap, empty)
 import Maybe       exposing (withDefault)
-import List        exposing ( (::) , map , sortWith , foldl
+import List        exposing ( (::) , map , sortWith , foldl, foldr
                             , any , take , filter , length
                             , sortBy , reverse , head , drop
                             , map2 , sum
@@ -30,13 +31,13 @@ computeAggregateHeights : HexModel -> List Int
 computeAggregateHeights model =
   map 
     (\ i -> 
-      Array.foldr 
+      foldr 
         (\ j n -> 
-          case (getXYCell j i model.grid) of
-             Filled -> j
-             Empty  -> n)
+          case (getXYCell i j model.grid) of
+             Just Filled -> j
+             _           -> n)
         0
-        [0..mode.height]
+        [0..model.height])
     [0..model.width]
 
 type alias Seeded a = (a, Seed)
