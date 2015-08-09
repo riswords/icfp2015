@@ -35,7 +35,7 @@ showTest = \ () ->
 
 looper : () -> Signal Element
 looper = \ () ->
-  let init = withDefault emptyModel <| head (initGameState (fromJson test0))
+  let init = withDefault emptyModel <| head (initGameState (fromJson test4))
   in  Signal.map viewer  <| Signal.foldp
                              (\ i (m, commands, s) ->
                                if m.isGameOver
@@ -46,7 +46,7 @@ looper = \ () ->
                                                  in (m, nextCmds, [(heuristic m)])
                                       (c::cs) -> (update c m, cs, [(heuristic m)]))
                              (init, [], []) 
-                             (Time.fps 3)
+                             (Time.fps 30)
 
 looper2 : () -> Signal Element
 looper2 = \ () ->

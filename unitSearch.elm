@@ -57,10 +57,10 @@ heuristic model =
   let score   = model.score
       heights = computeHeights model
       height  = heightHeuristic heights
-      bump    = bumpHeuristic heights // 5
-      lines   = 3 * countLiners model // 4
-      finish  = if model.isGameOver then -10000 else 0
-  in (score * score) + height + lines - bump + finish
+      bump    = bumpHeuristic heights // 20
+      lines   = countLiners model
+      finish  = if model.isGameOver then -100000 else 0
+  in (score * 2) + height + lines - bump + finish
 
 -----------------------------------------------------------------------------
 -- Generate a population of landing spots using the height heuristic
