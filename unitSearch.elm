@@ -15,8 +15,9 @@ import Maybe       exposing (withDefault)
 import List        exposing ( (::) , map , foldl, foldr
                             , any , take , filter , length
                             , sortBy , reverse , head , drop
-                            , map2 , sum
+                            , map2 , sum, all
                             )
+import ListDict    exposing (Dict, member, get, insert, remove, empty)
 
 -----------------------------------------------------------------------------
 -- Finding a landing spot and thinking about how to get there
@@ -92,6 +93,12 @@ genCommand : Seed -> Seeded Command
 genCommand seed = let (index, newSeed) = genNum 0 5 seed
                   in withSeed (withDefault E <| Array.get index moveArr) newSeed
 
+isJust : Maybe a -> Bool
+isJust v =
+  case v of 
+    Nothing  -> False
+    (Just x) -> True
+
 ------------------------------------------------------------------------------------------------------
 beforeNextDrop : Command -> List Command -> Bool
 beforeNextDrop cmd cmds =
@@ -153,9 +160,6 @@ returnValidTargets grid targets unit =
       in  (isUnitSafe grid newUnit, (unit , (cell, target)))
   in map snd <| filter fst <| List.concat <| map (\ t -> map (\ c -> mapper c t) unit.members) targets
 
-buildPathToTarget : HexModel -> (HexUnit, (HexCell, (Int, Int))) -> List Command
-buildPathToTarget model (unit, (cell, loc)) = []
-
 ------------------------------------------------------------------------------------------------------
 runCommands : List Command -> HexModel -> HexModel
 runCommands cmds model =
@@ -166,6 +170,36 @@ runCommands cmds model =
               []      -> Done model
               (c::cs) -> Continue (\ () -> loop cs (update c model))
   in trampoline <| loop cmds model
+
+------------------------------------------------------------------------------------------------------
+buildPathToTarget : HexModel -> (HexUnit, (Int, Int)) -> Maybe (List Command)
+buildPathToTarget model target = snd <| memoizedPathfinder model target ListDict.empty
+
+isCorrectRotation : HexUnit -> HexUnit -> Bool
+isCorrectRotation unit1 unit2 =
+  (foldl (&&) True (List.map2 (==) unit1.members unit2.members)) && (unit1.location == unit2.location) 
+
+piecePlaced : HexModel -> (HexUnit, (Int, Int)) -> Bool
+piecePlaced model (unit, target) = 
+  (isCorrectRotation model.unit unit) && (any ((==)target << cellToOffset) model.unit.members)
+
+nextPiece : HexModel -> Bool
+nextPiece model = (count P model.history) > 1
+
+hitTarget : HexModel -> (HexUnit, (Int, Int)) -> Bool
+hitTarget model target = piecePlaced model target && nextPiece model
+
+foldResult : HexModel ->
+             Dict (Grid, HexUnit) (Maybe (List Command)) ->
+             Maybe (List Command) ->
+             Command ->
+             (Dict (Grid, HexUnit) (Maybe (List Command)), Maybe (List Command))
+foldResult model memo path command =
+  case path of
+    Nothing -> (insertMemo model Nothing memo, Nothing)
+    Just ls -> (insertMemo model (Just (command :: ls)) memo, Just (command :: ls))
+
+type alias Memo = Dict (Grid, HexUnit) (Maybe (List Command))
 
 ------------------------------------------------------------------------------------------------------
 pickBestPath : List (List Command, HexModel) -> List Command
@@ -180,12 +214,42 @@ pickBestPath inputs =
   in fst <| trampoline <| loop inputs ([], 0)
 
 ------------------------------------------------------------------------------------------------------
+memoizedPathfinder : HexModel -> (HexUnit, (Int, Int)) -> Memo -> (Memo, Maybe (List Command))
+memoizedPathfinder model target memo =
+  if | memberMemo model memo  -> (memo, lookupMemo model memo)
+     | model.isGameOver       -> (insertMemo model Nothing memo,   Nothing)
+     | hitTarget model target -> (insertMemo model (Just []) memo, Just []) 
+     | nextPiece model        -> (insertMemo model Nothing memo,   Nothing)
+     | otherwise              ->
+       fastFoldl
+        (\ direction (memo, currentResult) -> 
+           if   isJust currentResult
+           then (memo, currentResult) 
+           else let (newMemo, newPath) = memoizedPathfinder (update direction model) target memo
+                in foldResult model newMemo newPath direction)
+        (memo, Nothing)
+        [E,W,SW,SE,CW,CCW]
+
+insertMemo : HexModel -> (Maybe (List Command)) -> Memo -> Memo
+insertMemo model val memo = insert (model.grid, model.unit) val memo
+
+lookupMemo : HexModel -> Memo -> Maybe (List Command)
+lookupMemo model memo = withDefault Nothing <| ListDict.get (model.grid, model.unit) memo
+
+memberMemo : HexModel -> Memo -> Bool
+memberMemo model memo = member (model.grid, model.unit) memo
+
+------------------------------------------------------------------------------------------------------
 pickNextMove : HexModel -> Int -> List Command
-pickNextMove init size =
+pickNextMove init =
   let unitConfigs  = generateUnitRots init.unit
       bottoms      = List.indexedMap (\ i n -> (i,n)) <| computeHeights init
       validTargets = List.concat <| List.map (returnValidTargets init.grid bottoms) unitConfigs
-      paths        = List.map2 buildPathToTarget (List.repeat (length validTargets) init) validTargets
+      paths        = map snd <|
+                       filter (((==)True) << fst) <|
+                         List.map2 buildPathToTarget 
+                           (List.repeat (length validTargets) init) 
+                           validTargets
       choices      = fastFoldl
                        (\ path results -> (path, runCommands path init) :: results)
                        []
