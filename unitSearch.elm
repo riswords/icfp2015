@@ -79,6 +79,7 @@ PSEUDOCODE
 
 
 ------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------
 type alias Seeded a = (a, Seed)
 withSeed : a -> Seed -> Seeded a
 withSeed = (,)
@@ -100,36 +101,6 @@ isJust v =
     (Just x) -> True
 
 ------------------------------------------------------------------------------------------------------
-beforeNextDrop : Command -> List Command -> Bool
-beforeNextDrop cmd cmds =
-  let loop cmd cmds = 
-        case cmds of
-          []       -> Done False
-          (SW::xs) -> Done False
-          (SE::xs) -> Done False
-          (P::xs)  -> Done False
-          (x::xs)  -> if x == cmd
-                      then Done True
-                      else Continue (\ () -> loop cmd xs)
-  in trampoline <| loop cmd cmds                        
-
-trashCompactor : List Command -> List Command -- for the detention Level
-trashCompactor ls = 
-  let trashCompactorLoop ls acc =
-        case ls of
-          []              -> Done <| reverse acc
-          (CW::CCW::rest) -> Continue (\ () -> trashCompactorLoop rest acc)
-          (CCW::CW::rest) -> Continue (\ () -> trashCompactorLoop rest acc)
-          (W::rest)       -> if   beforeNextDrop E rest
-                             then Continue (\ () -> trashCompactorLoop (removeFirst E rest) acc)
-                             else Continue (\ () -> trashCompactorLoop rest (W :: acc))
-          (E::rest)       -> if   beforeNextDrop W rest
-                             then Continue (\ () -> trashCompactorLoop (removeFirst W rest) acc)
-                             else Continue (\ () -> trashCompactorLoop rest (E :: acc))
-          (x::xs)         -> Continue (\ () -> trashCompactorLoop xs (x :: acc))
-  in trampoline <| trashCompactorLoop ls []
-
-------------------------------------------------------------------------------------------------------
 fastFoldl : (a -> b -> b) -> b -> List a -> b
 fastFoldl f b aes = trampoline <| foldl' f b aes
 
@@ -140,6 +111,7 @@ foldl' f base ls =
     (x::xs) -> Continue (\ () -> foldl' f (f x base) xs)
 
 ------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------
 generateUnitRots : HexUnit -> List HexUnit
 generateUnitRots unit =
   let loop unit n acc =
@@ -149,7 +121,7 @@ generateUnitRots unit =
   in loop unit 6 []
 
 ------------------------------------------------------------------------------------------------------
-returnValidTargets : Grid -> List (Int, Int) -> HexUnit -> List (HexUnit, (HexCell, (Int, Int)))
+returnValidTargets : Grid -> List (Int, Int) -> HexUnit -> List (HexUnit, (Int, Int))
 returnValidTargets grid targets unit =
   let mapper cell target =
       let (x, y)   = cellToOffset cell
@@ -157,7 +129,7 @@ returnValidTargets grid targets unit =
           offset   = (x - tx, y - ty)
           cellOff  = offsetToCell offset
           newUnit  = offsetUnit unit cellOff
-      in  (isUnitSafe grid newUnit, (unit , (cell, target)))
+      in  (isUnitSafe grid newUnit, (unit , target))
   in map snd <| filter fst <| List.concat <| map (\ t -> map (\ c -> mapper c t) unit.members) targets
 
 ------------------------------------------------------------------------------------------------------
@@ -171,6 +143,7 @@ runCommands cmds model =
               (c::cs) -> Continue (\ () -> loop cs (update c model))
   in trampoline <| loop cmds model
 
+------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------
 buildPathToTarget : HexModel -> (HexUnit, (Int, Int)) -> Maybe (List Command)
 buildPathToTarget model target = snd <| memoizedPathfinder model target ListDict.empty
@@ -189,31 +162,9 @@ nextPiece model = (count P model.history) > 1
 hitTarget : HexModel -> (HexUnit, (Int, Int)) -> Bool
 hitTarget model target = piecePlaced model target && nextPiece model
 
-foldResult : HexModel ->
-             Dict (Grid, HexUnit) (Maybe (List Command)) ->
-             Maybe (List Command) ->
-             Command ->
-             (Dict (Grid, HexUnit) (Maybe (List Command)), Maybe (List Command))
-foldResult model memo path command =
-  case path of
-    Nothing -> (insertMemo model Nothing memo, Nothing)
-    Just ls -> (insertMemo model (Just (command :: ls)) memo, Just (command :: ls))
-
+------------------------------------------------------------------------------------------------------
 type alias Memo = Dict (Grid, HexUnit) (Maybe (List Command))
 
-------------------------------------------------------------------------------------------------------
-pickBestPath : List (List Command, HexModel) -> List Command
-pickBestPath inputs =
-  let loop ls curBest =
-        case ls of 
-          []      -> Done curBest
-          (x::xs) -> let heurRes = heuristic <| snd x
-                     in if heurRes > (snd curBest)
-                        then Continue (\ () -> loop xs (fst x, heurRes))
-                        else Continue (\ () -> loop xs curBest)
-  in fst <| trampoline <| loop inputs ([], 0)
-
-------------------------------------------------------------------------------------------------------
 memoizedPathfinder : HexModel -> (HexUnit, (Int, Int)) -> Memo -> (Memo, Maybe (List Command))
 memoizedPathfinder model target memo =
   if | memberMemo model memo  -> (memo, lookupMemo model memo)
@@ -230,6 +181,12 @@ memoizedPathfinder model target memo =
         (memo, Nothing)
         [E,W,SW,SE,CW,CCW]
 
+foldResult : HexModel -> Memo -> Maybe (List Command) -> Command -> (Memo, Maybe (List Command))
+foldResult model memo path command =
+  case path of
+    Nothing -> (insertMemo model Nothing memo, Nothing)
+    Just ls -> (insertMemo model (Just (command :: ls)) memo, Just (command :: ls))
+
 insertMemo : HexModel -> (Maybe (List Command)) -> Memo -> Memo
 insertMemo model val memo = insert (model.grid, model.unit) val memo
 
@@ -240,16 +197,29 @@ memberMemo : HexModel -> Memo -> Bool
 memberMemo model memo = member (model.grid, model.unit) memo
 
 ------------------------------------------------------------------------------------------------------
-pickNextMove : HexModel -> Int -> List Command
+------------------------------------------------------------------------------------------------------
+pickBestPath : List (List Command, HexModel) -> List Command
+pickBestPath inputs =
+  let loop ls curBest =
+        case ls of 
+          []      -> Done curBest
+          (x::xs) -> let heurRes = heuristic <| snd x
+                     in if heurRes > (snd curBest)
+                        then Continue (\ () -> loop xs (fst x, heurRes))
+                        else Continue (\ () -> loop xs curBest)
+  in fst <| trampoline <| loop inputs ([], 0)
+
+------------------------------------------------------------------------------------------------------
+pickNextMove : HexModel -> List Command
 pickNextMove init =
   let unitConfigs  = generateUnitRots init.unit
       bottoms      = List.indexedMap (\ i n -> (i,n)) <| computeHeights init
       validTargets = List.concat <| List.map (returnValidTargets init.grid bottoms) unitConfigs
-      paths        = map snd <|
-                       filter (((==)True) << fst) <|
+      paths        = map (withDefault []) <|
+                       filter isJust <|
                          List.map2 buildPathToTarget 
-                           (List.repeat (length validTargets) init) 
-                           validTargets
+                         (List.repeat (length validTargets) init) 
+                         validTargets
       choices      = fastFoldl
                        (\ path results -> (path, runCommands path init) :: results)
                        []

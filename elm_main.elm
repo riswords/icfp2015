@@ -41,11 +41,10 @@ looper = \ () ->
                                if m.isGameOver
                                then (m, [], s)
                                else case commands of
-                                      []      -> let (nextMove,h)   = (pickNextMove m 1000)
-                                                     newCmds   = nextMove.history
+                                      []      -> let newCmds   = pickNextMove m
                                                      nextCmds  = List.reverse (List.filter ((/=)P) newCmds)
-                                                 in (m, nextCmds, (heuristic <| Ei m) :: h :: s)
-                                      (c::cs) -> (update c m, cs, (heuristic <| Ei m) :: s))
+                                                 in (m, nextCmds, (heuristic m) :: 0 :: s)
+                                      (c::cs) -> (update c m, cs, (heuristic m) :: s))
                              (init, [], []) 
                              (Time.fps 3)
 
