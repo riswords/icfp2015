@@ -57,7 +57,7 @@ heuristic model =
   let score   = model.score
       heights = computeHeights model
       height  = heightHeuristic heights
-      bump    = bumpHeuristic heights // 20
+      bump    = bumpHeuristic heights // (model.width * 2)
       lines   = countLiners model
       finish  = if model.isGameOver then -100000 else 0
   in (score * 2) + height + lines - bump + finish
@@ -309,6 +309,14 @@ folder init target bestTarget =
   if isJust bestTarget
   then bestTarget
   else buildPathToTarget init target
+
+-- bouncePick : List HexUnit -> 
+--              List (Int, Int) -> 
+--              List (HexUnit, (Int, Int)) -> 
+--              Trampoline (List Command, List (HexUnit, (Int, Int)))
+-- bouncePick unitConfigs bottoms validTargets =
+--   case validTargets of
+    
 
 pickNextMove : HexModel -> List Command
 pickNextMove init =

@@ -81,10 +81,17 @@ type alias Input =
   }
 
 -----------------------------------------
-
 type alias Ei = 
   { model : HexModel }
 
 type alias Eier = List Ei
 
+type GameState
+     = GameOver HexModel
+     | ComputingMove HexModel
+     | RunningGame   HexModel (List Command)
+
+type Action 
+     = Init        HexModel
+     | Nop
 

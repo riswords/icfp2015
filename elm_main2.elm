@@ -1,48 +1,60 @@
-module ElmMain2 where
+module ElmMain where
 
 import Signal
-import Signal exposing ((<~), Signal)
+import Signal exposing ((<~), Signal, Address)
 
-import IO               exposing (..)
-import Tests            exposing (..)
-import Init             exposing (..)
-import Search           exposing (..)
-import List             exposing (map, take, head)
-import Queue            exposing (push, empty, Queue, peek)
-import DataStructs      exposing (..)
-import Maybe            exposing (withDefault)
-import Graphics.Element exposing (flow, down, show)
+import IO          exposing (..)
+import Tests       exposing (..)
+import Init        exposing (..)
+import UnitSearch  exposing (..)
+import Search
+import List        exposing (map, take, head, (::))
+import Array       exposing (get)
+import Queue       exposing (push, empty, Queue, peek)
+import DataStructs exposing (..)
+import Maybe       exposing (..)
+import Update      exposing (update)
+import Graphics.Element exposing (Element)
 
 import Time
+import Task   exposing (Task)
 import Debug  exposing (watch)
 
-import Text
-import Graphics.Element exposing (Element, show)
+import Viewer2 exposing (viewer)
 
 -- port output : Signal String
 -- port output = Signal.map toString (Time.every Time.second)
 
+-- Nasty hack to make the compiler happy
 main : Signal Element
-main = looper()
+main = looper ()
+
+box : Signal.Mailbox Action
+box = Signal.mailbox Nop 
 
 looper : () -> Signal Element
 looper = \ () ->
-  let init = withDefault emptyModel <| head (initGameState (fromJson test1))
-      initModel : Running (Queue (HexModel, List Command), (List Command, Int)) 
-      initModel = More ((push empty (init, [])),([], 0))
-  in  Signal.map viewer  <| Signal.foldp 
-                           (\ i m -> case m of
-                                       Done _            -> m
-                                       More (queue,best) -> bfStep queue best)
-                           initModel
-                           (Time.fps 1)
+  let init = withDefault emptyModel <| head (initGameState (fromJson test4))
+  in  Signal.map (viewer box.address)  <| 
+        Signal.foldp
+          (\ (action, i) state ->
+            case action of
+              Init model  -> RunningGame model []
+              Nop         -> updateGame state)
+          (RunningGame init [])
+          (Signal.map2 (,) box.signal (Time.fps 3))
 
-viewer : Running (Queue (HexModel, List Command), (List Command, Int)) -> Element
-viewer m =
-  case m of
-    (More ((top, btm), best)) -> flow down (map hexView (List.append top btm))
-    (Done ((top, btm), best)) -> show best
-
-hexView : (HexModel, List Command) -> Element
-hexView (m, l) = show l
+updateGame : GameState -> GameState
+updateGame state =
+  case state of
+    GameOver m               -> state
+    ComputingMove m          -> let newCmds   = pickNextMove m
+                                    nextCmds  = List.filter ((/=)P) newCmds
+                                in RunningGame m nextCmds
+    (RunningGame m commands) -> 
+      if m.isGameOver
+      then GameOver m
+      else case commands of
+             []      -> ComputingMove m
+             (c::cs) -> RunningGame   (update c m) cs
 

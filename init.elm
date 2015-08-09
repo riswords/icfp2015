@@ -7,6 +7,9 @@ import List        exposing (map, take, drop, foldr, (::), append, head, tail, l
 import Rand        exposing (next)
 import Hex         exposing (setXYCell)
 import Array       exposing (repeat)
+import IO          exposing (fromJson)
+import Tests       exposing (emptyModel)
+import Maybe       exposing (withDefault)
 
 initGrid : Int -> Int -> Grid
 initGrid width height = repeat height (repeat width Empty)
@@ -32,6 +35,9 @@ convertCell pivot {x, y} =
 
 fillCell : Cell -> Grid -> Grid
 fillCell {x, y} g = setXYCell x y g Filled
+
+setupGame : String -> HexModel
+setupGame input = withDefault emptyModel <| head <| initGameState <| fromJson input 
 
 initGameState : Input -> List HexModel
 initGameState {id, units, width, height, filled, sourceLength, sourceSeeds} =

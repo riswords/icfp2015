@@ -70,5 +70,6 @@ uniter : Color -- Unit hexes
 uniter = rgba 46 184 230 1.0
 unitCenter : Color -- Center dot
 unitCenter = rgba 25 117 209 1.0
-
+messageColor : Color -- Center dot
+messageColor = rgba 100 100 100 0.6
 
