@@ -6,7 +6,7 @@ import Update      exposing (update)
 import Trampoline  exposing (..)
 import Debug       exposing (watch)
 import Util        exposing (removeFirst, splitOn)
-import Hex         exposing (getXYCell)
+import Hex         exposing (getXYCell, cellToOffset)
 import Random      exposing (int, Generator, Seed, initialSeed, generate)
 import Array       exposing (fromList, get, Array, indexedMap, empty)
 import Maybe       exposing (withDefault)
@@ -16,17 +16,8 @@ import List        exposing ( (::) , map , sortWith , foldl, foldr
                             , map2 , sum
                             )
 
-{--
-PSEUDOCODE
-
-1. Generate population
-2. Score population
-3. Select top 50
-4. Permute top 50, generate 50 more
-5. Iterate until we're happy
-
---}
-
+-----------------------------------------------------------------------------
+-- Finding a landing spot and thinking about how to get there
 computeAggregateHeights : HexModel -> List Int
 computeAggregateHeights model =
   map 
@@ -39,6 +30,65 @@ computeAggregateHeights model =
         0
         [0..model.height])
     [0..model.width]
+
+-- buildPath : HexModel -> HexUnit -> List (Int, Int) -> List Command 
+-- buildPath x y z = []
+-- 
+-- generateTargetPath : HexModel -> List Command 
+-- generateTargetPath = []
+-- 
+-- pickBestFit model =
+--   let unit       = model.unit
+--       aggHeights = encodeXCoord <| group <| computeAggregateHeights model
+--       targets    = pickLandingSpots unit aggHeights
+--   in map (buildPath model unit) targets
+-- 
+-- encodeXCoord : List (List Int) -> List (Int, List Int)
+-- encodeXCoord ls = 
+--   let loop ls curX =
+--         case ls of
+--           []     -> []
+--           (x::xs) -> (curX, x) :: loop xs (curX + length x)
+--   in loop ls 0          
+-- 
+-- -- TODO: Misnamed right now
+-- computeUnitWidths : HexUnit -> List Int
+-- computeUnitWidths unit =
+--   let coords = List.map cellToOffset unit.members
+--       xs     = List.map fst coords
+--       ys     = List.map snd coords
+--       minX   = withDefault 0 (List.minimum xs)
+--       maxX   = withDefault 0 (List.maximum xs)
+--       minY   = withDefault 0 (List.minimum ys)
+--       maxY   = withDefault 0 (List.maximum ys)
+--    in [maxX - minX, maxY - minY]
+-- 
+-- pickLandingSpots : HexUnit -> List (Int, List Int) -> List (Int, Int)
+-- pickLandingSpots unit possibles = 
+--   let unitWidths = computeUnitWidths unit 
+--       loop ls =
+--         case ls of
+--           []             -> []
+--           ((lhs, x)::xs) -> let width = length x
+--                             in if any (\ x -> width <= x) unitWidths
+--                                then (lhs, withDefault 0 <| head x) :: loop xs
+--                                else loop xs
+--   in loop possibles                              
+
+-----------------------------------------------------------------------------
+-- Genetic Algorithm
+
+{--
+PSEUDOCODE
+
+1. Generate population
+2. Score population
+3. Select top 50
+4. Permute top 50, generate 50 more
+5. Iterate until we're happy
+
+--}
+
 
 type alias Seeded a = (a, Seed)
 withSeed : a -> Seed -> Seeded a

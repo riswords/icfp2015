@@ -25,6 +25,12 @@ removeFirst a ls =
                then xs
                else x :: removeFirst a xs
 
+count : a -> List a -> Int
+count a ls =
+  case ls of
+    []      -> 0
+    (x::xs) -> if a == x then count a xs + 1 else count a xs
+
 ------------------------------------------------------------------
 -- Array helpers
 
@@ -39,6 +45,9 @@ minimum = foldl min 100000000
 
 maximum : Array Int -> Int
 maximum = foldl max -100000000
+
+sum : Array Int -> Int
+sum = foldl (+) 0
 
 toArray : a -> Array a
 toArray = repeat 1

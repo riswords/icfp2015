@@ -13,10 +13,10 @@ import Search           exposing (..)
 import Text             exposing (fromString, monospace)
 import Util             exposing (..)
 
-viewer : (HexModel, List Command, Int) -> Element
+viewer : (HexModel, List Command, List Int ) -> Element
 viewer = hexView 
 
-hexView : (HexModel, List Command, Int) -> Element
+hexView : (HexModel, List Command, List Int ) -> Element
 hexView (hexModel, commandHistory, avgScore) = showModel hexModel commandHistory avgScore
 
 -- Just some important values
@@ -56,7 +56,7 @@ makeHexagon rownum colnum val =
        |> move ((toFloat colnum) * oneHexWidth + evenoff,
                 -1.0 * (toFloat rownum) * oneHexHeight)
 
-showModel : HexModel -> List Command -> Int -> Element
+showModel : HexModel -> List Command -> List Int -> Element
 showModel model commands avgScore = 
     let gridWidth  = toFloat model.width
         gridHeight = toFloat model.height
@@ -70,9 +70,10 @@ showModel model commands avgScore =
     in flow down
             [ flow right <| (renderString "Moves: " :: (List.map show <| take 10 commands))
             , flow right [renderString "Score: ", show model.score]
-            , flow right [renderString "Average Score: ", show avgScore]
+            , flow right [renderString "Heuristic: ", show avgScore]
             , flow right [renderString "Unit Loction: ", show (cellToOffset model.unit.location)]
             , flow right [renderString "Unit Members: ", show (unitToCoordinates model.unit)]
+            , flow right [renderString "Game Over: ", show model.isGameOver]
             , collage collageWidth collageHeight 
                       [move collageOffset (group (List.append hexagons unitgons))]
             ]

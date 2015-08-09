@@ -68,6 +68,10 @@ offsetToCell (col, row) =
 offsetBy : HexCell -> HexCell -> HexCell
 offsetBy offset {x,y,z} = HexCell (x + offset.x) (y + offset.y) (z + offset.z)
 
+offsetUnit : HexUnit -> HexCell -> HexUnit
+offsetUnit {members, location} offset =
+  {members = map (offsetBy offset) members, location = offsetBy offset location}
+
 unitToRelativeUnit : HexUnit -> HexUnit
 unitToRelativeUnit {members, location} =
   let x = location.x
@@ -85,6 +89,13 @@ unitToCoordinates {members, location} = map cellToOffset members
 
 ---------------------------------------------------------------------------------
 -- Cell Rotation and Movement
+rotateGridlessUnit : Command -> HexUnit -> HexUnit
+rotateGridlessUnit direction unit =
+    let relUnit = unitToRelativeUnit unit
+        newMembers   = map (rotateCell direction) relUnit.members
+    in relativeUnitToAbs {members = newMembers, location = unit.location}
+
+
 rotateUnit : Grid -> Command -> HexUnit -> (Bool, HexUnit)
 rotateUnit grid direction unit =
     let relUnit = unitToRelativeUnit unit

@@ -6,7 +6,8 @@ import Signal exposing ((<~), Signal)
 import IO          exposing (..)
 import Tests       exposing (..)
 import Init        exposing (..)
-import Search      exposing (..)
+import UnitSearch  exposing (..)
+import Search
 import List        exposing (map, take, head, (::))
 import Array       exposing (get)
 import Queue       exposing (push, empty, Queue, peek)
@@ -24,24 +25,40 @@ import Viewer exposing (viewer)
 -- port output = Signal.map toString (Time.every Time.second)
 
 -- Nasty hack to make the compiler happy
-main : Element
-main = showTest ()
+main : Signal Element
+main = looper ()
 
 showTest : () -> Element
 showTest = \ () -> 
   let init                     = withDefault emptyModel <| head (initGameState (fromJson test1))
-  in viewer (init, [], 0)
+  in viewer (init, [], [])
 
 looper : () -> Signal Element
 looper = \ () ->
+  let init = withDefault emptyModel <| head (initGameState (fromJson test0))
+  in  Signal.map viewer  <| Signal.foldp
+                             (\ i (m, commands, s) ->
+                               if m.isGameOver
+                               then (m, [], s)
+                               else case commands of
+                                      []      -> let (nextMove,h)   = (pickNextMove m 1000)
+                                                     newCmds   = nextMove.history
+                                                     nextCmds  = List.reverse (List.filter ((/=)P) newCmds)
+                                                 in (m, nextCmds, (heuristic <| Ei m) :: h :: s)
+                                      (c::cs) -> (update c m, cs, (heuristic <| Ei m) :: s))
+                             (init, [], []) 
+                             (Time.fps 3)
+
+looper2 : () -> Signal Element
+looper2 = \ () ->
   let init                     = withDefault emptyModel <| head (initGameState (fromJson test1))
-      (samplePlayer, avgScore) = hatchDecentPlayer init 50
+      (samplePlayer, avgScore) = Search.hatchDecentPlayer init 50
       commands                 = List.reverse <| (.history samplePlayer.model)
   in  Signal.map viewer  <| Signal.foldp
                              (\ i (m, commands, avg) ->
                                case commands of
                                  []      -> (m, commands, avg)
                                  (c::cs) -> (update c m, cs, avg))
-                             (init, commands, avgScore) 
+                             (init, commands, []) 
                              (Time.fps 200)
 
