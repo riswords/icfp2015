@@ -53,10 +53,10 @@ update move model =
 
 scoreAndSpawn : HexUnit -> HexModel -> HexModel
 scoreAndSpawn updUnit model =
-  let (newModel, lineClear) = clearRows model
+  let lockedModel = lockUnit updUnit model
+      (newModel, lineClear) = clearRows lockedModel
   in newModel
      |> updateScore lineClear updUnit 
-     |> lockUnit updUnit 
      |> spawnNewUnit
 
 lockUnit : HexUnit -> HexModel -> HexModel

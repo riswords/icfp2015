@@ -27,7 +27,7 @@ main = looper()
 
 looper : () -> Signal Element
 looper = \ () ->
-  let init = withDefault emptyModel <| head (initGameState (fromJson test0))
+  let init = withDefault emptyModel <| head (initGameState (fromJson test1))
       initModel : Running (Queue (HexModel, List Command), (List Command, Int)) 
       initModel = More ((push empty (init, [])),([], 0))
   in  Signal.map viewer  <| Signal.foldp 

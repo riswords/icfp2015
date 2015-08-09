@@ -42,9 +42,9 @@ looper = \ () ->
                                then (m, [], s)
                                else case commands of
                                       []      -> let newCmds   = pickNextMove m
-                                                     nextCmds  = List.reverse (List.filter ((/=)P) newCmds)
-                                                 in (m, nextCmds, (heuristic m) :: 0 :: s)
-                                      (c::cs) -> (update c m, cs, (heuristic m) :: s))
+                                                     nextCmds  = (List.filter ((/=)P) newCmds)
+                                                 in (m, nextCmds, [(heuristic m)])
+                                      (c::cs) -> (update c m, cs, [(heuristic m)]))
                              (init, [], []) 
                              (Time.fps 3)
 

@@ -1,7 +1,7 @@
 module Util where
 
 import DataStructs exposing (..)
-import List        exposing (head, drop, indexedMap, (::), reverse)
+import List        exposing (head, drop, indexedMap, (::), reverse, member)
 import Array       exposing (Array, foldl, repeat)
 import Color       exposing (rgba, Color)
 
@@ -30,6 +30,14 @@ count a ls =
   case ls of
     []      -> 0
     (x::xs) -> if a == x then count a xs + 1 else count a xs
+
+pruneDuplicates : List a -> List a
+pruneDuplicates ls =
+  case ls of
+    []      -> []
+    (x::xs) -> if member x xs
+               then pruneDuplicates xs
+               else (x :: pruneDuplicates xs)
 
 ------------------------------------------------------------------
 -- Array helpers

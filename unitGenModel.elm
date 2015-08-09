@@ -102,22 +102,6 @@ beforeNextDrop cmd cmds =
                       else Continue (\ () -> loop cmd xs)
   in trampoline <| loop cmd cmds                        
 
-trashCompactor : List Command -> List Command -- for the detention Level
-trashCompactor ls = 
-  let trashCompactorLoop ls acc =
-        case ls of
-          []              -> Done <| reverse acc
-          (CW::CCW::rest) -> Continue (\ () -> trashCompactorLoop rest acc)
-          (CCW::CW::rest) -> Continue (\ () -> trashCompactorLoop rest acc)
-          (W::rest)       -> if   beforeNextDrop E rest
-                             then Continue (\ () -> trashCompactorLoop (removeFirst E rest) acc)
-                             else Continue (\ () -> trashCompactorLoop rest (W :: acc))
-          (E::rest)       -> if   beforeNextDrop W rest
-                             then Continue (\ () -> trashCompactorLoop (removeFirst W rest) acc)
-                             else Continue (\ () -> trashCompactorLoop rest (E :: acc))
-          (x::xs)         -> Continue (\ () -> trashCompactorLoop xs (x :: acc))
-  in trampoline <| trashCompactorLoop ls []
-
 dropOneHist : HexModel -> HexModel
 dropOneHist model = {model | history <- drop 1 model.history}
 
