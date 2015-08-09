@@ -1,16 +1,17 @@
 module DataStructs where
 
 import Random      exposing (int, Generator, Seed, initialSeed)
+import Array       exposing (Array)
 
 -----------------------------------------
 type Hex 
     = Empty
     | Filled
 
-type alias HexRow = List Hex
+type alias HexRow = Array Hex
 
 -----------------------------------------
-type alias Grid   = List (List Hex)
+type alias Grid   = Array (Array Hex)
 
 -----------------------------------------
 type alias Cell = 
@@ -81,12 +82,8 @@ type alias Input =
 
 -----------------------------------------
 
-type GenSet = GenSet (Generator Int) Seed
-
 type alias Ei = 
-  { model : HexModel 
-  , gen     : GenSet
-  }
+  { model : HexModel }
 
 type alias Eier = List Ei
 

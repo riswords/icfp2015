@@ -1,6 +1,7 @@
 module Tests where
 
 import DataStructs exposing (HexModel, HexUnit, HexCell)
+import Array       exposing (empty)
 
 emptyModel : HexModel
 emptyModel = 
@@ -8,7 +9,7 @@ emptyModel =
     , units        = []
     , unit         = HexUnit [] (HexCell 0 0 0)
     , isGameOver   = False
-    , grid         = []
+    , grid         = empty
     , sourceLength = 0
     , sourceSeed   = 17
     , score        = 0

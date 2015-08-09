@@ -2,20 +2,11 @@ module Util where
 
 import DataStructs exposing (..)
 import List        exposing (head, drop, indexedMap, (::), reverse)
+import Array       exposing (Array, foldl, repeat)
 import Color       exposing (rgba, Color)
 
 ------------------------------------------------------------------
 -- Some list helpers
-get : Int -> List a -> Maybe a
-get i ls = head <| drop i ls
-
-set : Int -> List a -> a -> List a
-set index ls newVal = 
-    indexedMap (\i v -> if index == i
-                        then newVal
-                        else v)
-               ls
-
 splitOn : a -> List a -> List (List a)
 splitOn a ls =
   let helper a ls seen =
@@ -33,6 +24,24 @@ removeFirst a ls =
     (x::xs) -> if x == a
                then xs
                else x :: removeFirst a xs
+
+------------------------------------------------------------------
+-- Array helpers
+
+all : (a -> Bool) -> Array a -> Bool
+all pred = foldl (\ x res -> res && pred x) True
+
+any : (a -> Bool) -> Array a -> Bool
+any pred = foldl (\ x res -> res || pred x) False
+
+minimum : Array Int -> Int
+minimum = foldl min 100000000
+
+maximum : Array Int -> Int
+maximum = foldl max -100000000
+
+toArray : a -> Array a
+toArray = repeat 1
 
 ------------------------------------------------------------------
 -- A few colors

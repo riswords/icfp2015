@@ -1,16 +1,17 @@
 module Viewer where
 
-import Graphics.Element exposing (..)
+import Array            exposing (toList)
+import Color            exposing (..)
 import Graphics.Collage exposing (..)
-import Text exposing (fromString, monospace)
-import Color exposing (..)
-import List exposing (indexedMap, (::), take)
+import Graphics.Element exposing (..)
+import List             exposing ((::), take, indexedMap)
 
-import Hex         exposing (unitToCoordinates, cellToOffset)
-import DataStructs exposing (..)
-import Search      exposing (..)
-import Queue       exposing (push, empty, Queue, peek)
-import Util        exposing (..)
+import DataStructs      exposing (..)
+import Hex              exposing (unitToCoordinates, cellToOffset)
+import Queue            exposing (push, empty, Queue, peek)
+import Search           exposing (..)
+import Text             exposing (fromString, monospace)
+import Util             exposing (..)
 
 viewer : (HexModel, List Command, Int) -> Element
 viewer = hexView 
@@ -45,21 +46,23 @@ drawUnit h w unit =
                               |> move (computeXY col row)
   in  List.append (List.map unitNGon coords) [centerDot]
 
+makeHexagon : Int -> Int -> Hex -> Form
+makeHexagon rownum colnum val =
+  let color   = if val == Empty then clearGrey else yeller
+      evenoff = evenOffset rownum
+  in ngon 6 hexRadius
+       |> filled color
+       |> rotate (degrees 30)
+       |> move ((toFloat colnum) * oneHexWidth + evenoff,
+                -1.0 * (toFloat rownum) * oneHexHeight)
+
 showModel : HexModel -> List Command -> Int -> Element
 showModel model commands avgScore = 
     let gridWidth  = toFloat model.width
         gridHeight = toFloat model.height
-        makeHexagon rownum colnum val =
-          let color   = if val == Empty then clearGrey else yeller
-              evenoff = evenOffset rownum
-          in ngon 6 hexRadius
-               |> filled color
-               |> rotate (degrees 30)
-               |> move ((toFloat colnum) * oneHexWidth + evenoff,
-                        -1.0 * (toFloat rownum) * oneHexHeight         )
-        makeHexagons rowIndex row = group <| indexedMap (makeHexagon rowIndex) row
-        hexagons = indexedMap makeHexagons model.grid
-        unitgons = drawUnit gridHeight gridWidth model.unit
+        makeHexagons rowIndex row = group <| indexedMap (makeHexagon rowIndex) <| toList row
+        hexagons      = indexedMap makeHexagons <| toList model.grid
+        unitgons      = drawUnit gridHeight gridWidth model.unit
         collageWidth  = floor (oneHexWidth * gridWidth * 1.2)
         collageHeight = floor (oneHexHeight * gridHeight * 1.2)
         collageOffset = (-1.0 * oneHexWidth * gridWidth * 0.5, 

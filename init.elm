@@ -3,9 +3,10 @@ module Init where
 import DataStructs exposing (..)
 import Util        exposing (..)
 import Update      exposing (spawnNewUnit)
-import List        exposing (repeat, map, take, drop, foldr, (::), append, head, tail, length)
+import List        exposing (map, take, drop, foldr, (::), append, head, tail, length)
 import Rand        exposing (next)
 import Hex         exposing (setXYCell)
+import Array       exposing (repeat)
 
 initGrid : Int -> Int -> Grid
 initGrid width height = repeat height (repeat width Empty)

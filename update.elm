@@ -1,7 +1,8 @@
 module Update where
 
 import DataStructs exposing (..)
-import List        exposing (..)
+import Array       exposing (..)
+import Util        exposing (all, any, maximum, minimum, toArray)
 import Maybe       exposing (withDefault)
 import Hex         exposing (..)
 import Rand        exposing (next)
@@ -11,20 +12,20 @@ clearRows : HexModel -> (HexModel, Int)
 clearRows model = 
     let (grid, clearedRows) = 
           foldr 
-            (\row (ls, i) -> if all filled row then (ls, i+1) else (row :: ls, i))
-            ([], 0)
+            (\row (ls, i) -> if all filled row then (ls, i+1) else (append (toArray row) ls, i))
+            (empty, 0)
             model.grid
     in ( { model | grid <- padN clearedRows (repeat model.width Empty) grid }
          , clearedRows
        )
 
-padN : Int -> List Hex -> Grid -> Grid
+padN : Int -> Array Hex -> Grid -> Grid
 padN count emptyRow grid = append (repeat count emptyRow) grid
 
 
 updateScore : Int -> HexUnit -> HexModel -> HexModel
 updateScore ls unit model = 
-  let size       = length unit.members
+  let size       = List.length unit.members
       lsOld      = model.prevLines
       points     = size + (100 * (1 + ls) * ls // 2)
       lineBonus = if   lsOld > 1 
@@ -61,14 +62,14 @@ scoreAndSpawn updUnit model =
 lockUnit : HexUnit -> HexModel -> HexModel
 lockUnit unit model =
   let updater cell grid = setCell cell.x cell.y cell.z grid Filled
-      updatedGrid       = foldl updater model.grid unit.members
+      updatedGrid       = List.foldl updater model.grid unit.members
   in { model | grid <- updatedGrid }
 
 -- duplicated logic in init.elm, keep in sync
 spawnNewUnit : HexModel -> HexModel
 spawnNewUnit model = 
     let (randInt, seed') = next model.sourceSeed
-        newUnit          = getUnit (randInt % length model.units) model.units
+        newUnit          = getUnit (randInt % List.length model.units) model.units
         locatedUnit      = moveToCenter model newUnit
         spawnSuccess     = isUnitSafe model.grid locatedUnit
     in { model
@@ -81,18 +82,18 @@ spawnNewUnit model =
 moveToCenter : HexModel -> HexUnit -> HexUnit
 moveToCenter model unit = 
     let grid        = model.grid 
-        coords       = map cellToOffset unit.members
-        xes          = map fst coords
-        ys           = map snd coords
-        minX         = withDefault 0 (minimum xes)
-        maxX         = withDefault 0 (maximum xes)
-        minY         = withDefault 0 (minimum ys)
+        coords       = List.map cellToOffset unit.members
+        xes          = List.map fst coords
+        ys           = List.map snd coords
+        minX         = withDefault 0 (List.minimum xes)
+        maxX         = withDefault 0 (List.maximum xes)
+        minY         = withDefault 0 (List.minimum ys)
         (curX, curY) = cellToOffset unit.location
         width        = model.width - 1
         idealOffset  = ((width - maxX) + minX) // 2
         offsetX      = idealOffset - minX 
         offsetY      = curY - (curY - minY)
         cellOffset   = offsetToCell (offsetX, offsetY)
-    in { members  = map (offsetBy cellOffset) unit.members
+    in { members  = List.map (offsetBy cellOffset) unit.members
        , location = offsetBy cellOffset unit.location
        }

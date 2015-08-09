@@ -2,7 +2,7 @@ module Hex where
 
 import DataStructs exposing (..)
 import List exposing (map, all, (::))
-import Util exposing (get, set)
+import Array exposing (get, set, empty)
 import Maybe exposing (withDefault)
 import List exposing (head, drop, length, map, indexedMap)
 
@@ -20,7 +20,7 @@ getXYCell : Int -> Int -> Grid -> Maybe Hex
 getXYCell colIndex rowIndex grid =
     if (rowIndex < 0) || (colIndex < 0)
     then Nothing
-    else get colIndex <| withDefault [] (get rowIndex grid)
+    else get colIndex <| withDefault empty (get rowIndex grid)
 
 getCell : Int -> Int -> Int -> Grid -> Maybe Hex
 getCell x y z grid = 
@@ -31,8 +31,8 @@ getCell x y z grid =
 -- Grid Cell Update
 setXYCell : Int -> Int -> Grid -> Hex -> Grid
 setXYCell col row grid hexVal =
-    let gridRow = withDefault [] (get row grid)
-    in set row grid <| set col gridRow hexVal
+    let gridRow = withDefault empty (get row grid)
+    in set row (set col hexVal gridRow) grid
 
 setCell : Int -> Int -> Int -> Grid -> Hex -> Grid
 setCell x y z grid hexVal =
@@ -47,7 +47,9 @@ inBounds grid x y z = case getCell x y z grid of
                         Just _  -> True
 
 getUnit : Int -> List HexUnit -> HexUnit
-getUnit i ls = withDefault (HexUnit [] (HexCell 0 0 0)) (get i ls)
+getUnit i ls = 
+  let lookup = head <| drop i ls
+  in  withDefault (HexUnit [] (HexCell 0 0 0)) lookup
 
 ------------------------------------------------------------------
 -- Coordinate and Offset tools for Cells and Units

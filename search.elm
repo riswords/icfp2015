@@ -25,7 +25,7 @@ import List        exposing ( (::)
                             , sum
                             )
 
-
+import Control.State exposing (..)
 {--
 PSEUDOCODE
 
@@ -40,10 +40,16 @@ PSEUDOCODE
 moveArr : Array Command
 moveArr = fromList [E,W,SW,SE,CW,CCW]
 
-genCommand : GenSet -> (Command, GenSet)
-genCommand (GenSet gen seed) = 
-  let (index, newSeed) = generate gen seed
-  in  (withDefault E <| get index moveArr, GenSet gen newSeed)
+(>>=) : State s a -> (a -> State s b) -> State s b
+(>>=) = bindS
+
+genNum : Int -> Int -> State Seed Int
+genNum lo hi = Control.State.get >>= (\ seed -> 
+                          let (res, newSeed) = generate (int lo hi) seed
+                          in  (put newSeed) >>= (\ _ -> returnS res))
+
+genCommand : () -> State Seed Command
+genCommand = \ () -> (genNum 0 5) >>= (\ index -> returnS <| withDefault E <| Array.get index moveArr)
 
 beforeNextDrop : Command -> List Command -> Bool
 beforeNextDrop cmd cmds =
@@ -70,63 +76,117 @@ trashCompactor ls =
                        else E :: trashCompactor rest
     (x::xs)         -> x :: trashCompactor xs
 
-runUntilGameOver : List Command -> Ei -> Ei
+runUntilGameOver : List Command -> Ei -> State Seed Ei
 runUntilGameOver cmds ei =
   if (.isGameOver ei.model)
-  then ei
+  then returnS ei
   else case cmds of
-        []      -> generateEi ei.model ei.gen
+        []      -> generateEi ei.model
         (c::cs) -> runUntilGameOver cs {ei | model <- update c ei.model}
 
 -- Let's make an egg!
-generateEi : HexModel -> GenSet -> Ei 
-generateEi model gen =
+generateEi : HexModel -> State Seed Ei 
+generateEi model =
   if model.isGameOver
-  then Ei {model | history <- reverse <| trashCompactor <| reverse model.history} gen
-  else let (command, newGen) = genCommand gen
-       in  generateEi (update command model) newGen
+  then returnS <| Ei {model | history <- reverse <| trashCompactor <| reverse model.history}
+  else genCommand() >>= (\ comm -> generateEi (update comm model))
 
-genFolder : HexModel -> Int -> (Eier, GenSet) -> (Eier, GenSet)
-genFolder init x (eis, gen) = 
-  let ei = generateEi init gen
-  in (ei :: eis, ei.gen)
+genFolder : HexModel -> Int -> State Seed Eier -> State Seed Eier
+genFolder init x stateEis =
+  stateEis >>= (\ eis -> generateEi init >>= (\ ei -> returnS <| ei :: eis))
 
-generatePopulace : HexModel -> GenSet -> Int -> (Eier, GenSet)
-generatePopulace init gen size = foldl (genFolder init) ([], gen) [1..size]
+generatePopulace : HexModel -> Int -> State Seed Eier
+generatePopulace init size = foldl (genFolder init) (returnS []) [1..size]
 
-sortByFitness : Eier -> Eier
-sortByFitness = sortBy (.score << .model)
+reproduce : HexModel -> Eier -> Int -> State Seed Eier
+reproduce init eier popSize =
+  let loop newEier newPopSize = 
+        if newPopSize >= (popSize // 3)
+        then returnS <| newEier
+        else (selectSubPop init eier (popSize - 1) (popSize // 10)) >>=
+               (\ subPop -> 
+                  let bestTwo = take 2 <| sortByFitness subPop
+                  in case bestTwo of
+                       [ei1, ei2] -> (crossover init ei1 ei2) >>= 
+                                       (\ ei -> loop (ei :: newEier) (newPopSize + 1))
+                       _          -> loop newEier newPopSize) -- Should never happen
+  in loop [] 0                       
 
-crossover : HexModel -> Ei -> Ei -> Ei
+crossover : HexModel -> Ei -> Ei -> State Seed Ei
 crossover init ei1 ei2 =
   let e1H         = splitOn P <| (ei1.model).history
       e2H         = splitOn P <| (ei2.model).history
       e1pieces    = length e1H 
       e2pieces    = length e2H
-      seed        = case ei2.gen of (GenSet gen seed) -> seed
-      (takers,s)  = generate (int 1 ((min e1pieces e2pieces) - 1)) seed
-  in runUntilGameOver
-       (List.concat (List.append (take takers e1H) (drop takers e2H )))
-       (Ei init ei2.gen)
+  in (genNum 1 ((min e1pieces e2pieces) - 1)) >>=
+       (\ takers -> 
+          runUntilGameOver 
+            (List.concat <| List.append (take takers e1H) (drop takers e2H)) 
+            (Ei init))
 
-reproduce : HexModel -> Eier -> Eier
-reproduce init eier = 
-  let popSize  = length eier
-      halfSize = popSize // 2
-      firstHalf = take halfSize eier
-      secondHalf = take halfSize <| drop halfSize eier
-  in map2 (crossover init) firstHalf secondHalf
+selectSubPop : HexModel -> Eier -> Int -> Int -> State Seed Eier 
+selectSubPop default pop popSize targetSize =
+  let def = Ei default
+      loop subPop sPopSize =
+      if sPopSize >= targetSize
+      then returnS subPop
+      else (genNum 0 popSize) >>=
+             (\ index -> 
+                let newMember = withDefault def <| head <| take index pop
+                in  loop (newMember :: subPop) (sPopSize + 1))
+  in  loop [] 0
 
-evolve : HexModel -> (Eier, GenSet) -> (Eier, GenSet)
-evolve init (eier, gen) = 
-    let sortedPop        = reverse <| sortByFitness eier
-        popSize          = length sortedPop
-        keepSize         = popSize // 4
-        goodEggs         = take keepSize sortedPop
-        hatchlings       = reproduce init goodEggs
-        hatchSize        = length hatchlings
-        (newPop, newGen) = (generatePopulace init gen (popSize - (keepSize + hatchSize)))
-    in (List.concat [goodEggs, hatchlings, newPop], newGen)
+evolve : HexModel -> State Seed Eier -> State Seed Eier
+evolve init stateEier =
+  stateEier >>= 
+    (\ eier ->
+       let sortedPop = reverse <| sortByFitness eier
+           popSize   = length sortedPop
+           keepSize  = popSize // 4
+           goodEggs  = take keepSize sortedPop
+       in (reproduce init goodEggs popSize) >>=
+            (\ hatchlings ->
+               let hatchSize = length hatchlings
+                   newSize   = keepSize + hatchSize
+                   newPop    = take (popSize - newSize) sortedPop
+               in returnS <| List.concat [newPop, hatchlings]))
+
+--    let sortedPop        = reverse <| sortByFitness eier
+--        popSize          = length sortedPop
+--        keepSize         = popSize // 4
+--        goodEggs         = take keepSize sortedPop
+--        midEggs          = take (keepSize // 2) sortedPop
+--        hatchlings       = reproduce init goodEggs
+--        mutants          = irradiate init midEggs
+--        hatchSize        = length hatchlings
+--        mutantSize       = length mutants
+--        newSize          = keepSize + hatchSize + mutantSize
+--        (newPop, newGen) = (generatePopulace init gen (popSize - newSize))
+--    in (List.concat [goodEggs, hatchlings, mutants, newPop], newGen))
+
+sortByFitness : Eier -> Eier
+sortByFitness = sortBy (.score << .model)
+
+
+-- reproduce : HexModel -> Eier -> Eier
+-- reproduce init eier = 
+--   let popSize  = length eier
+--       halfSize = popSize // 2
+--       firstHalf = take halfSize eier
+--       secondHalf = take halfSize <| drop halfSize eier
+--   in map2 (crossover init) firstHalf secondHalf
+
+-- mutate : HexModel -> Ei -> Ei
+-- mutate init ei =
+--   let eH         = length (ei.model).history
+--       seed        = case ei.gen of (GenSet gen seed) -> seed
+--       (takers,s)  = generate (int ((eH // 2) + (eH // 4)) (eH - 1)) seed
+--   in runUntilGameOver
+--        (filter ((/=)P) (take takers (ei.model).history))
+--        (Ei init ei.gen)
+
+-- irradiate : HexModel -> Eier -> Eier
+-- irradiate init eier = map (mutate init) eier
 
 findBest : Eier -> Ei -> Ei
 findBest eis curBest = 
@@ -134,12 +194,22 @@ findBest eis curBest =
     []      -> curBest
     (e::es) -> findBest es (if e.model.score > curBest.model.score then e else curBest)
 
+fastFoldl : (a -> b -> b) -> b -> List a -> b
+fastFoldl f b aes = trampoline <| foldl' f b aes
+
+foldl' : (a -> b -> b) -> b -> List a -> Trampoline b
+foldl' f base ls =
+  case ls of
+    []      -> Done base
+    (x::xs) -> Continue (\ () -> foldl' f (f x base) xs)
+
 hatchDecentPlayer : HexModel -> Int -> (Ei, Int)
 hatchDecentPlayer init size = 
-  let gen      = GenSet (int 0 5) (initialSeed 31415)
-      evolver  = evolve init
-      finalPop = fst (foldl (\ i eg -> evolver eg) (generatePopulace init gen size) [1..2])
-  in  (findBest finalPop (Ei init gen) , computeAverageScore finalPop)
+  let evolver  = evolve init
+      finalPop = evalState 
+                   (fastFoldl (\ i eg -> evolver eg) (generatePopulace init size) [1..50])
+                   (initialSeed 31415)
+  in  (findBest finalPop (Ei init) , computeAverageScore finalPop)
 
 computeAverageScore : Eier -> Int
 computeAverageScore eier = (sum <| map (.score << .model) eier) // length eier
