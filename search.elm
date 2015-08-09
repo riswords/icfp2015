@@ -42,28 +42,32 @@ genCommand seed = let (index, newSeed) = genNum 0 5 seed
 
 beforeNextDrop : Command -> List Command -> Bool
 beforeNextDrop cmd cmds =
-  case cmds of
-    []       -> False
-    (SW::xs) -> False
-    (SE::xs) -> False
-    (P::xs) -> False
-    (x::xs)  -> if x == cmd
-                then True
-                else beforeNextDrop cmd xs 
+  let loop cmd cmds = 
+        case cmds of
+          []       -> Done False
+          (SW::xs) -> Done False
+          (SE::xs) -> Done False
+          (P::xs)  -> Done False
+          (x::xs)  -> if x == cmd
+                      then Done True
+                      else Continue (\ () -> loop cmd xs)
+  in trampoline <| loop cmd cmds                        
 
 trashCompactor : List Command -> List Command -- for the detention Level
-trashCompactor ls =
-  case ls of
-    []              -> []
-    (CW::CCW::rest) -> trashCompactor rest
-    (CCW::CW::rest) -> trashCompactor rest
-    (W::rest)       -> if   beforeNextDrop E rest
-                       then trashCompactor (removeFirst E rest)
-                       else W :: trashCompactor rest
-    (E::rest)       -> if   beforeNextDrop W rest
-                       then trashCompactor (removeFirst W rest)
-                       else E :: trashCompactor rest
-    (x::xs)         -> x :: trashCompactor xs
+trashCompactor ls = 
+  let trashCompactorLoop ls acc =
+        case ls of
+          []              -> Done <| reverse acc
+          (CW::CCW::rest) -> Continue (\ () -> trashCompactorLoop rest acc)
+          (CCW::CW::rest) -> Continue (\ () -> trashCompactorLoop rest acc)
+          (W::rest)       -> if   beforeNextDrop E rest
+                             then Continue (\ () -> trashCompactorLoop (removeFirst E rest) acc)
+                             else Continue (\ () -> trashCompactorLoop rest (W :: acc))
+          (E::rest)       -> if   beforeNextDrop W rest
+                             then Continue (\ () -> trashCompactorLoop (removeFirst W rest) acc)
+                             else Continue (\ () -> trashCompactorLoop rest (E :: acc))
+          (x::xs)         -> Continue (\ () -> trashCompactorLoop xs (x :: acc))
+  in trampoline <| trashCompactorLoop ls []
 
 runUntilGameOver : List Command -> Ei -> Seed -> Seeded Ei
 runUntilGameOver cmds ei seed =
@@ -88,7 +92,7 @@ genFolder init x (eis, seed) =
 
 generatePopulace : HexModel -> Int -> Seed -> Seeded Eier
 generatePopulace init size seed = 
-  foldl (genFolder init) (withSeed [] seed) [1..size]
+  fastFoldl (genFolder init) (withSeed [] seed) [1..size]
 
 reproduce : HexModel -> Eier -> Int -> Seed -> Seeded Eier
 reproduce init eier popSize seed =
@@ -128,15 +132,14 @@ selectSubPop default pop popSize targetSize seed =
 
 evolve : HexModel -> Seeded Eier -> Seeded Eier
 evolve init (eier, seed) =
-  let sortedPop             = reverse <| sortByFitness eier
-      popSize               = length sortedPop
-      keepSize              = popSize // 4
-      goodEggs              = take keepSize sortedPop
-      (hatchlings, newSeed) = reproduce init goodEggs popSize seed
-      hatchSize             = length hatchlings
-      newSize               = keepSize + hatchSize
-      newPop                = take (popSize - newSize) sortedPop
-  in withSeed (List.concat [newPop, hatchlings]) newSeed
+  let sortedPop              = reverse <| sortByFitness eier
+      popSize                = length sortedPop
+      (hatchlings, newSeed)  = reproduce init sortedPop popSize seed
+      hatchSize              = length hatchlings
+      (immigrants, newSeed2) = generatePopulace init hatchSize newSeed
+      newSize                = hatchSize * 2
+      newPop                 = take (popSize - newSize) sortedPop
+  in withSeed (List.concat [newPop, hatchlings, immigrants]) newSeed2
 
 --    let sortedPop        = reverse <| sortByFitness eier
 --        popSize          = length sortedPop
@@ -153,7 +156,6 @@ evolve init (eier, seed) =
 
 sortByFitness : Eier -> Eier
 sortByFitness = sortBy (.score << .model)
-
 
 -- reproduce : HexModel -> Eier -> Eier
 -- reproduce init eier = 
@@ -177,9 +179,16 @@ sortByFitness = sortBy (.score << .model)
 
 findBest : Eier -> Ei -> Ei
 findBest eis curBest = 
-  case eis of
-    []      -> curBest
-    (e::es) -> findBest es (if e.model.score > curBest.model.score then e else curBest)
+  let loop eis curBest =
+        case eis of
+          []      -> Done curBest
+          (e::es) -> Continue 
+                       (\ () -> loop 
+                                  es 
+                                  (if e.model.score > curBest.model.score then e else curBest))
+  in trampoline <| loop eis curBest
+
+
 
 fastFoldl : (a -> b -> b) -> b -> List a -> b
 fastFoldl f b aes = trampoline <| foldl' f b aes
@@ -193,7 +202,7 @@ foldl' f base ls =
 hatchDecentPlayer : HexModel -> Int -> (Ei, Int)
 hatchDecentPlayer init size = 
   let evolver  = evolve init
-      finalPop = fst <| foldl 
+      finalPop = fst <| fastFoldl 
                           (\ i eg -> evolver eg) 
                           (generatePopulace init size (initialSeed 31415))
                           [1..50]
