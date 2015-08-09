@@ -7,7 +7,7 @@ import Trampoline  exposing (..)
 import Debug       exposing (watch)
 import Util        exposing (removeFirst, splitOn)
 import Random      exposing (int, Generator, Seed, initialSeed, generate)
-import Array       exposing (fromList, get, Array)
+import Array       exposing (fromList, get, Array, foldr, indexedMap, empty)
 import Maybe       exposing (withDefault)
 import List        exposing ( (::) , map , sortWith , foldl
                             , any , take , filter , length
@@ -25,6 +25,19 @@ PSEUDOCODE
 5. Iterate until we're happy
 
 --}
+
+computeAggregateHeights : HexModel -> List Int
+computeAggregateHeights model =
+  map 
+    (\ i -> 
+      Array.foldr 
+        (\ j n -> 
+          case (getXYCell j i model.grid) of
+             Filled -> j
+             Empty  -> n)
+        0
+        [0..mode.height]
+    [0..model.width]
 
 type alias Seeded a = (a, Seed)
 withSeed : a -> Seed -> Seeded a

@@ -24,17 +24,17 @@ import Viewer exposing (viewer)
 -- port output = Signal.map toString (Time.every Time.second)
 
 -- Nasty hack to make the compiler happy
-main : Signal Element
-main = looper ()
+main : Element
+main = showTest ()
 
--- Broken things:
--- Rotation can do something catostrophic in test2 / test3. Linear shapes seem to be the problem.
--- This is probably because rotation isn't around the 'center point'. Hrm...
--- The visualizer in test1 sets the falling hex off-center. Also, the 'i' is screwed up.
+showTest : () -> Element
+showTest = \ () -> 
+  let init                     = withDefault emptyModel <| head (initGameState (fromJson test1))
+  in viewer (init, [], 0)
 
 looper : () -> Signal Element
 looper = \ () ->
-  let init                     = withDefault emptyModel <| head (initGameState (fromJson test6))
+  let init                     = withDefault emptyModel <| head (initGameState (fromJson test1))
       (samplePlayer, avgScore) = hatchDecentPlayer init 50
       commands                 = List.reverse <| (.history samplePlayer.model)
   in  Signal.map viewer  <| Signal.foldp
