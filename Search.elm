@@ -1,4 +1,4 @@
-module UnitSearch where
+module Search where
 
 import Queue       exposing (..)
 import DataStructs exposing (..)
@@ -303,20 +303,33 @@ pickBestPath inputs =
   in fst <| trampoline <| loop inputs ([], 0)
 
 ------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------
+bouncePick : HexModel ->
+             List HexUnit -> 
+             List (Int, Int) -> 
+             List (HexUnit, (Int, Int)) -> 
+             Trampoline (List Command)
+bouncePick init unitConfigs bottoms validTargets =
+  case validTargets of
+    []      -> Done []
+    (t::ts) -> let path = buildPathToTarget init t
+               in if isJust path
+                  then Done (withDefault [] <| path)
+                  else Continue (\ () -> bouncePick init unitConfigs bottoms ts)
 
+bouncePickNextMove : HexModel -> Trampoline (List Command)
+bouncePickNextMove init =
+  let unitConfigs  = pruneDuplicates <| generateUnitRots init.unit
+      bottoms      = List.indexedMap (\ i n -> (i,n)) <| computeHeights init
+      validTargets = sortTargets init <| List.concat <| List.map (returnValidTargets init.grid bottoms) unitConfigs
+  in bouncePick init unitConfigs bottoms validTargets 
+
+------------------------------------------------------------------------------------------------------
 folder : HexModel -> (HexUnit, (Int, Int)) -> Maybe (List Command) -> Maybe (List Command)
 folder init target bestTarget = 
   if isJust bestTarget
   then bestTarget
   else buildPathToTarget init target
-
--- bouncePick : List HexUnit -> 
---              List (Int, Int) -> 
---              List (HexUnit, (Int, Int)) -> 
---              Trampoline (List Command, List (HexUnit, (Int, Int)))
--- bouncePick unitConfigs bottoms validTargets =
---   case validTargets of
-    
 
 pickNextMove : HexModel -> List Command
 pickNextMove init =
@@ -325,15 +338,3 @@ pickNextMove init =
       validTargets = sortTargets init <| List.concat <| List.map (returnValidTargets init.grid bottoms) unitConfigs
       path         = withDefault [] <| fastFoldl (folder init) Nothing validTargets
   in path
-
--- pickNextMove : HexModel -> List Command
--- pickNextMove init =
---   let unitConfigs  = pruneDuplicates <| generateUnitRots init.unit
---       bottoms      = List.indexedMap (\ i n -> (i,n)) <| computeHeights init
---       validTargets = List.concat <| List.map (returnValidTargets init.grid bottoms) unitConfigs
---       paths        = map (withDefault []) <| filter isJust <| List.map2 buildPathToTarget (List.repeat (length validTargets) init) validTargets
---       choices      = fastFoldl
---                        (\ path results -> (path, runCommands path init) :: results)
---                        []
---                        paths
---   in  pickBestPath choices 

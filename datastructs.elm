@@ -2,6 +2,7 @@ module DataStructs where
 
 import Random      exposing (int, Generator, Seed, initialSeed)
 import Array       exposing (Array)
+import Trampoline  exposing (..)
 
 -----------------------------------------
 type Hex 
@@ -64,9 +65,9 @@ type alias HexModel =
 
 -----------------------------------------
 type alias Output = 
-    { id : Int
-    , seed : Int
-    , tag : String
+    { id       : Int
+    , seed     : Int
+    , tag      : String
     , solution : List Command
     }
 
@@ -81,17 +82,13 @@ type alias Input =
   }
 
 -----------------------------------------
-type alias Ei = 
-  { model : HexModel }
-
-type alias Eier = List Ei
 
 type GameState
-     = GameOver HexModel
-     | ComputingMove HexModel
+     = GameOver      HexModel
+     | ComputingMove HexModel (Trampoline (List Command))
      | RunningGame   HexModel (List Command)
 
 type Action 
-     = Init        HexModel
+     = Init HexModel
      | Nop
-
+     | TimeLimit Int
