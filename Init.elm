@@ -41,20 +41,23 @@ setupGame input = withDefault emptyModel <| head <| initGameState <| fromJson in
 
 initGameState : Input -> List HexModel
 initGameState {id, units, width, height, filled, sourceLength, sourceSeeds} =
-  map 
-    (\ s -> 
-      { id           = id
-      , units        = map convertUnit units
-      , unit         = HexUnit [] <| HexCell 0 0 0 -- Dummpy Unit
-      , grid         = foldr fillCell (initGrid width height) filled
-      , sourceLength = sourceLength
-      , sourceSeed   = s
-      , score        = 0
-      , prevLines    = 0
-      , isGameOver   = False
-      , history      = []
-      , width        = width
-      , height       = height
-      , originalSeed = s
-      } |> spawnNewUnit )
-    sourceSeeds
+  let modelUnits = map convertUnit units
+      modelGrid  = foldr fillCell (initGrid width height) filled
+  in
+    map 
+      (\ s -> 
+        { id           = id
+        , units        = modelUnits
+        , unit         = HexUnit [] <| HexCell 0 0 0 -- Dummpy Unit
+        , grid         = modelGrid
+        , sourceLength = sourceLength
+        , sourceSeed   = s
+        , score        = 0
+        , prevLines    = 0
+        , isGameOver   = False
+        , history      = []
+        , width        = width
+        , height       = height
+        , originalSeed = s
+        } |> spawnNewUnit )
+      sourceSeeds
