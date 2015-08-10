@@ -1,6 +1,5 @@
 module Search where
 
-import Queue       exposing (..)
 import DataStructs exposing (..)
 import Update      exposing (update, updateScore, lockUnit)
 import Trampoline  exposing (..)

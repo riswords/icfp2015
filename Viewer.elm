@@ -1,24 +1,26 @@
 module Viewer where
 
-import Array            exposing (toList)
-import Color            exposing (..)
-import Graphics.Collage exposing (..)
-import Graphics.Element exposing (..)
-import Html             exposing (toElement, div)
+import Array                exposing (toList)
+import Color                exposing (..)
+import Graphics.Collage     exposing (..)
+import Graphics.Element     exposing (..)
+import Graphics.Input       exposing (button, dropDown)
+import Graphics.Input.Field exposing (field)
+import Html                 exposing (toElement, div)
+import Signal               exposing (Address)
+
 import List             exposing ((::), take, indexedMap, drop, map, reverse)
 import Tests            exposing (..)
-import Signal           exposing (Address)
 import IO               exposing (toJson, generateOutput)
-
+import Engine           exposing (getModelFromState, getInputInfo)
 import String           exposing (append, dropLeft)
 import DataStructs      exposing (..)
 import Hex              exposing (unitToCoordinates, cellToOffset)
-import Queue            exposing (push, empty, Queue, peek)
 import Search           exposing (..)
 import Text             exposing (fromString, monospace, bold, color, height)
 import Util             exposing (..)
-import Graphics.Input   exposing (button, dropDown)
 import Init             exposing (setupGame)
+
 
 viewer : Address Action -> GameState -> Element
 viewer = showModel 
@@ -60,16 +62,10 @@ makeHexagon rownum colnum val =
        |> move ((toFloat colnum) * oneHexWidth + evenoff,
                 -1.0 * (toFloat rownum) * oneHexHeight)
 
-getModelFromState : GameState -> HexModel
-getModelFromState state =
-  case state of
-    GameOver i m        -> m
-    ComputingMove i m t -> m
-    RunningGame i m c   -> m
-
 showModel : Address Action -> GameState -> Element
 showModel addr state =
     let model      = getModelFromState state
+        inputInfo  = getInputInfo state
         gridWidth  = toFloat model.width
         gridHeight = toFloat model.height
         makeHexagons rowIndex row = group <| indexedMap (makeHexagon rowIndex) <| toList row
@@ -84,14 +80,26 @@ showModel addr state =
          [flow down
             [ space
             , flow right [ space
-                         , flow down [ testSelector addr
-                                     , space
-                                     , button (Signal.message addr Nop) "Start"
-                                     ]
+                         , flow down 
+                             [ testSelector addr
+                             , space
+                             , button (Signal.message addr Nop) "Start"
+                             ]
                          , space 
-                         , flow right [space, scoreText <| String.append "Score: " <| toString model.score]
+                         , flow down 
+                             [ scoreText <| String.append "Score: " <| toString model.score
+                             , space
+                             , scoreText <| 
+                               String.append "Elapsed Time: " <| 
+                               toString <|
+                               floor <|
+                               inputInfo.lastTime - inputInfo.startTime
+                             ]
                          , space 
-                         , flow right [space, scoreText <| String.append "Pieces Left: " <| toString model.sourceLength]
+                         , flow right 
+                             [ space
+                             , scoreText <| String.append "Pieces Left: " <| toString model.sourceLength
+                             ]
                          ]
             , space                         
             , collage collageWidth collageHeight 
@@ -155,8 +163,4 @@ chunkUp n s =
 showOutput : HexModel -> Element
 showOutput model = 
   flow down <| map renderString <| chunkUp 20 <| toJson <| generateOutput model 
-  
-
-
-
 

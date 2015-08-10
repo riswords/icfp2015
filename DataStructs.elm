@@ -74,7 +74,9 @@ type alias Input =
 
 type alias InputInfo =
      { powerWords : List String
-     , time       : Int 
+     , timeLimit  : Float 
+     , startTime  : Float 
+     , lastTime   : Float 
      }
 
 type GameState

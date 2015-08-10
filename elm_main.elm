@@ -3,22 +3,13 @@ module ElmMain where
 import Signal
 import Signal exposing ((<~), Signal, Address)
 
-import IO          exposing (..)
-import Tests       exposing (..)
 import Init        exposing (..)
-import Search      exposing (..)
-import List        exposing (map, take, head, (::))
-import Array       exposing (get)
-import Queue       exposing (push, empty, Queue, peek)
+import Tests       exposing (test0, emptyModel)
 import DataStructs exposing (..)
-import Maybe       exposing (..)
-import Update      exposing (update)
-import Util        exposing (bounce, withDoneValue, isDone)
+import Engine      exposing (..)
 import Graphics.Element exposing (Element)
 
 import Time
-import Task   exposing (Task)
-import Debug  exposing (watch)
 
 import Viewer exposing (viewer)
 
@@ -32,33 +23,20 @@ main = looper emptyModel
 box : Signal.Mailbox Action
 box = Signal.mailbox <| Init <| setupGame test0 
 
-initialInfo = {powerWords = [], time = 100}
+initialInfo = {powerWords = [], timeLimit = 1000.0, startTime = 0.0, lastTime = 0.0}
 
 looper : HexModel -> Signal Element
 looper init = 
   Signal.map (viewer box.address)  <| 
     Signal.foldp
-      (\ (action, i) state ->
+      (\ (action, time) state ->
         case action of
-          Init model  -> RunningGame initialInfo model []
-          TimeLimit n -> state
-          Nop         -> updateGame state)
+          Init model  -> RunningGame 
+                           { initialInfo | startTime <- Time.inSeconds time }
+                           model 
+                           []
+          TimeLimit n -> setTimeLimit n state
+          Nop         -> updateGame <| updateTime time state)
       (RunningGame initialInfo init [])
-      (Signal.map2 (,) box.signal (Time.fps 3))
-
-updateGame : GameState -> GameState
-updateGame state =
-  case state of
-    GameOver i m           -> state
-    ComputingMove i m tram -> if isDone tram
-                              then let newCmds = withDoneValue [] tram
-                                       nextCmds  = List.filter ((/=)P) newCmds
-                                   in RunningGame i m nextCmds
-                              else ComputingMove i m (bounce tram)     
-    RunningGame i m cmds   -> 
-      if m.isGameOver
-      then GameOver i m
-      else case cmds of
-             []      -> ComputingMove i m (bouncePickNextMove m)
-             (c::cs) -> RunningGame i (update c m) cs
+      (Signal.map2 (,) box.signal (Time.every 3))
 
