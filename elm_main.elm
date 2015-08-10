@@ -1,63 +1,62 @@
 module ElmMain where
 
 import Signal
-import Signal exposing ((<~), Signal)
+import Signal exposing ((<~), Signal, Address)
 
 import IO          exposing (..)
 import Tests       exposing (..)
 import Init        exposing (..)
-import UnitSearch  exposing (..)
-import Search
+import Search      exposing (..)
 import List        exposing (map, take, head, (::))
 import Array       exposing (get)
 import Queue       exposing (push, empty, Queue, peek)
 import DataStructs exposing (..)
 import Maybe       exposing (..)
 import Update      exposing (update)
+import Util        exposing (bounce, withDoneValue, isDone)
 import Graphics.Element exposing (Element)
 
 import Time
+import Task   exposing (Task)
 import Debug  exposing (watch)
 
 import Viewer exposing (viewer)
 
--- Once upon a time this was for CLI
+-- Once upon a time, this was going to be for CLI
 -- port output : Signal String
 -- port output = Signal.map toString (Time.every Time.second)
 
 main : Signal Element
-main = looper ()
+main = looper emptyModel
 
-showTest : () -> Element
-showTest = \ () -> 
-  let init                     = withDefault emptyModel <| head (initGameState (fromJson test1))
-  in viewer (init, [], [])
+box : Signal.Mailbox Action
+box = Signal.mailbox <| Init <| setupGame test0 
 
-looper : () -> Signal Element
-looper = \ () ->
-  let init = withDefault emptyModel <| head (initGameState (fromJson test4))
-  in  Signal.map viewer  <| Signal.foldp
-                             (\ i (m, commands, s) ->
-                               if m.isGameOver
-                               then (m, [], s)
-                               else case commands of
-                                      []      -> let newCmds   = pickNextMove m
-                                                     nextCmds  = (List.filter ((/=)P) newCmds)
-                                                 in (m, nextCmds, [(heuristic m)])
-                                      (c::cs) -> (update c m, cs, [(heuristic m)]))
-                             (init, [], []) 
-                             (Time.fps 30)
+looper : HexModel -> Signal Element
+looper init = 
+  Signal.map (viewer box.address)  <| 
+    Signal.foldp
+      (\ (action, i) state ->
+        case action of
+          Init model  -> RunningGame model []
+          TimeLimit n -> state
+          Nop         -> updateGame state)
+      (RunningGame init [])
+      (Signal.map2 (,) box.signal (Time.fps 3))
 
-looper2 : () -> Signal Element
-looper2 = \ () ->
-  let init                     = withDefault emptyModel <| head (initGameState (fromJson test1))
-      (samplePlayer, avgScore) = Search.hatchDecentPlayer init 50
-      commands                 = List.reverse <| (.history samplePlayer.model)
-  in  Signal.map viewer  <| Signal.foldp
-                             (\ i (m, commands, avg) ->
-                               case commands of
-                                 []      -> (m, commands, avg)
-                                 (c::cs) -> (update c m, cs, avg))
-                             (init, commands, []) 
-                             (Time.fps 200)
+updateGame : GameState -> GameState
+updateGame state =
+  case state of
+    GameOver m           -> state
+    ComputingMove m tram -> if isDone tram
+                            then let newCmds = withDoneValue [] tram
+                                     nextCmds  = List.filter ((/=)P) newCmds
+                                 in RunningGame m nextCmds
+                            else ComputingMove m (bounce tram)     
+    RunningGame m cmds   -> 
+      if m.isGameOver
+      then GameOver m
+      else case cmds of
+             []      -> ComputingMove m (bouncePickNextMove m)
+             (c::cs) -> RunningGame   (update c m) cs
 

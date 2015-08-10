@@ -1,6 +1,7 @@
 module IO where
 
 import DataStructs exposing (..)
+import List exposing (reverse, filter)
 import Json.Encode exposing (encode, object)
 import Json.Decode exposing ((:=), decodeString, object2, object7)
 import String      exposing (toList, fromList)
@@ -15,6 +16,14 @@ extractOp op =
     SE  -> 'l'
     CW  -> 'd'
     CCW -> 'k'
+
+generateOutput : HexModel -> Output
+generateOutput model = 
+    { id = model.id
+    , seed = model.originalSeed
+    , tag = "hacknslash"
+    , solution = reverse (filter ((/=) P) model.history)
+    }
 
 toJson : Output -> String
 toJson {id, seed, tag, solution} =

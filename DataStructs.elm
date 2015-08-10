@@ -49,6 +49,7 @@ type alias HexModel =
     , history      : List Command
     , width        : Int
     , height       : Int
+    , originalSeed : Int
     }
 
 ----------------------------------------------

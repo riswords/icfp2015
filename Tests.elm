@@ -17,6 +17,7 @@ emptyModel =
     , history      = []
     , width        = 0
     , height       = 0
+    , originalSeed = 17
     }
 
 test0 = """
