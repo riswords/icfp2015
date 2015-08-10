@@ -4,7 +4,8 @@ import Array            exposing (toList)
 import Color            exposing (..)
 import Graphics.Collage exposing (..)
 import Graphics.Element exposing (..)
-import List             exposing ((::), take, indexedMap)
+import Html             exposing (toElement, div)
+import List             exposing ((::), take, indexedMap, drop, map, reverse)
 import Tests            exposing (..)
 import Signal           exposing (Address)
 
@@ -87,6 +88,7 @@ showModel addr state =
                                      ]
                          , space 
                          , flow right [space, scoreText <| String.append "Score: " <| toString model.score]
+                         , showOutput model
                          ]
             , space                         
             , collage collageWidth collageHeight 
@@ -136,5 +138,12 @@ statusOverlay state =
 
 msgText      = Graphics.Collage.text << Text.height 20 << bold << Text.color white << fromString
 scoreText    = centered << Text.height 20 << bold << Text.color black << fromString
+
+renderString : String -> Element
 renderString = centered << monospace << fromString
 
+showOutput : HexModel -> Element
+showOutput model = 
+  let cmdStrings = map (renderString << toString)
+                       (drop 1 (splitOn P (reverse model.history)))
+  in flow down cmdStrings
