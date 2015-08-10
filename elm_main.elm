@@ -23,7 +23,7 @@ main = looper emptyModel
 box : Signal.Mailbox Action
 box = Signal.mailbox <| Init <| setupGame test0 
 
-initialInfo = {powerWords = [], timeLimit = 1000.0, startTime = 0.0, lastTime = 0.0}
+initialInfo = {powerWords = ["ei!", "cthuhlu", "yuggoth", "ia ia"], timeLimit = 1000.0, startTime = 0.0, lastTime = 0.0}
 
 looper : HexModel -> Signal Element
 looper init = 

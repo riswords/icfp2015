@@ -6,15 +6,18 @@ import Json.Encode exposing (encode, object)
 import Json.Decode exposing ((:=), decodeString, object2, object7)
 import String      exposing (toList, fromList)
 import PowerWords  exposing (commandsToPowerWords)
+import Engine      exposing (..)
 
 
-generateOutput : HexModel -> Output
-generateOutput model = 
-  let commands = reverse (filter ((/=) P) model.history)
+generateOutput : GameState -> Output
+generateOutput state = 
+  let model    = getModelFromState state 
+      info     = getInputInfo state
+      commands = reverse (filter ((/=) P) model.history)
   in { id = model.id
      , seed = model.originalSeed
      , tag = "hacknslash"
-     , solution = commandsToPowerWords commands model.powerWords
+     , solution = commandsToPowerWords commands info.powerWords
      }
 
 toJson : Output -> String
@@ -25,7 +28,7 @@ toJson {id, seed, tag, solution} =
     encode 0 <| object [ ("problemId", int id)
                        , ("seed",      int seed)
                        , ("tag",       str tag)
-                       , ("solution",  solution)
+                       , ("solution",  str solution)
                        ]
 
 fromJson : String -> Input

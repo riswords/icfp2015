@@ -88,7 +88,7 @@ showModel addr state =
                                , space
                                , button (Signal.message addr Nop) "Start"
                                ]
-        jsonOut    = flow down [ labelText "Output", space, showOutput model ]
+        jsonOut    = flow down [ labelText "Output", space, showOutput state ]
         gameInfo   = flow right 
                           [ flow down 
                                  [ labelText <| String.append "Score: " <| toString model.score
@@ -184,7 +184,6 @@ inputBox addr ph f =
     , on "input" targetValue (\ str -> Signal.message addr <| f str )]
     []
 
-showOutput : HexModel -> Element
-showOutput model = 
-  flow down <| map renderString <| chunkUp 20 <| toJson <| generateOutput model 
+showOutput : GameState -> Element
+showOutput = flow down << map renderString << chunkUp 20 << toJson << generateOutput 
 
