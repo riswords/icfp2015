@@ -62,9 +62,9 @@ makeHexagon rownum colnum val =
 getModelFromState : GameState -> HexModel
 getModelFromState state =
   case state of
-    GameOver m      -> m
-    ComputingMove m -> m
-    RunningGame m c -> m
+    GameOver m        -> m
+    ComputingMove m t -> m
+    RunningGame m c   -> m
 
 showModel : Address Action -> GameState -> Element
 showModel addr state =
@@ -100,8 +100,7 @@ showModel addr state =
 testSelector addr = 
   dropDown 
     (Signal.message addr)
-    [ ("",      Nop)
-    , ("test0",  Init <| setupGame test0)
+    [ ("test0",  Init <| setupGame test0)
     , ("test1",  Init <| setupGame test1)
     , ("test2",  Init <| setupGame test2)
     , ("test3",  Init <| setupGame test3)
@@ -131,9 +130,9 @@ testSelector addr =
 statusOverlay : GameState -> List Form
 statusOverlay state = 
   case state of 
-    GameOver      m -> [rect 200 100 |> filled messageColor, msgText "  Game Over"]
-    ComputingMove m -> [rect 200 100 |> filled messageColor, msgText "  Computing Move"]
-    RunningGame m c -> []
+    GameOver      m   -> [rect 200 100 |> filled messageColor, msgText "  Game Over"]
+    ComputingMove m t -> [rect 200 100 |> filled messageColor, msgText "  Computing Move"]
+    RunningGame   m c -> []
 
 
 msgText      = Graphics.Collage.text << Text.height 20 << bold << Text.color white << fromString

@@ -21,10 +21,10 @@ import Debug  exposing (watch)
 
 import Viewer exposing (viewer)
 
+-- Once upon a time this was for CLI
 -- port output : Signal String
 -- port output = Signal.map toString (Time.every Time.second)
 
--- Nasty hack to make the compiler happy
 main : Signal Element
 main = looper ()
 

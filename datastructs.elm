@@ -2,18 +2,14 @@ module DataStructs where
 
 import Random      exposing (int, Generator, Seed, initialSeed)
 import Array       exposing (Array)
+import Trampoline  exposing (..)
 
------------------------------------------
-type Hex 
-    = Empty
-    | Filled
-
+----------------------------------------------
+type       Hex    = Empty | Filled 
 type alias HexRow = Array Hex
-
------------------------------------------
 type alias Grid   = Array (Array Hex)
 
------------------------------------------
+----------------------------------------------
 type alias Cell = 
     { x : Int
     , y : Int
@@ -25,7 +21,7 @@ type alias HexCell =
     , z : Int
     }
 
------------------------------------------
+----------------------------------------------
 type alias Unit = 
     { members :  List Cell
     , pivot : Cell
@@ -36,17 +32,10 @@ type alias HexUnit =
     , location : HexCell
     }
 
------------------------------------------
-type Command 
-    = CW
-    | CCW
-    | E
-    | W
-    | SE
-    | SW
-    | P
+----------------------------------------------
+type Command = CW | CCW | E | W | SE | SW | P
 
------------------------------------------
+----------------------------------------------
 type alias HexModel = 
     { id           : Int
     , units        : List HexUnit
@@ -63,11 +52,11 @@ type alias HexModel =
     , originalSeed : Int
     }
 
------------------------------------------
+----------------------------------------------
 type alias Output = 
-    { id : Int
-    , seed : Int
-    , tag : String
+    { id       : Int
+    , seed     : Int
+    , tag      : String
     , solution : List Command
     }
 
@@ -81,18 +70,14 @@ type alias Input =
   , sourceSeeds  : List Int
   }
 
------------------------------------------
-type alias Ei = 
-  { model : HexModel }
-
-type alias Eier = List Ei
+----------------------------------------------
 
 type GameState
-     = GameOver HexModel
-     | ComputingMove HexModel
+     = GameOver      HexModel
+     | ComputingMove HexModel (Trampoline (List Command))
      | RunningGame   HexModel (List Command)
 
 type Action 
-     = Init        HexModel
+     = Init HexModel
      | Nop
-
+     | TimeLimit Int
