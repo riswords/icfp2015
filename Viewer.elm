@@ -10,7 +10,7 @@ import Tests            exposing (..)
 import Signal           exposing (Address)
 import IO               exposing (toJson, generateOutput)
 
-import String           exposing (append)
+import String           exposing (append, dropLeft)
 import DataStructs      exposing (..)
 import Hex              exposing (unitToCoordinates, cellToOffset)
 import Queue            exposing (push, empty, Queue, peek)
@@ -80,7 +80,8 @@ showModel addr state =
         collageOffset = (-1.0 * oneHexWidth * gridWidth * 0.5, 
                          oneHexHeight * gridHeight * 0.5)
         space = spacer 20 20
-    in flow down
+    in flow right 
+         [flow down
             [ space
             , flow right [ space
                          , flow down [ testSelector addr
@@ -91,15 +92,15 @@ showModel addr state =
                          , flow right [space, scoreText <| String.append "Score: " <| toString model.score]
                          , space 
                          , flow right [space, scoreText <| String.append "Pieces Left: " <| toString model.sourceLength]
-                         , space 
-                         , showOutput model
                          ]
             , space                         
             , collage collageWidth collageHeight 
                       <| List.append [move collageOffset (group (List.append hexagons unitgons))]
                                      (statusOverlay state)
             ]
-
+         , space 
+         , flow down [space, showOutput model]
+         ]
 
 testSelector addr = 
   dropDown 
@@ -145,5 +146,17 @@ scoreText    = centered << Text.height 20 << bold << Text.color black << fromStr
 renderString : String -> Element
 renderString = centered << monospace << fromString
 
+chunkUp : Int -> String -> List String
+chunkUp n s = 
+  if String.isEmpty s
+  then []
+  else (String.left n s) :: chunkUp n (dropLeft n s)
+
 showOutput : HexModel -> Element
-showOutput model = renderString <| toJson <| generateOutput model 
+showOutput model = 
+  flow down <| map renderString <| chunkUp 20 <| toJson <| generateOutput model 
+  
+
+
+
+
