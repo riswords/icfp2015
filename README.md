@@ -22,27 +22,33 @@ To run the application, you have two options:
    just point your browser at `elm_main.elm`.
 
 During running, you may notice what appear to be lock-ups. The program will 
-eventually resume. We are still troubleshooting the cause of this behavior.
+eventually resume; we are still troubleshooting the cause of this behavior.
 
 ## Adding New Tests (and other Stuff)
 
-The test cases provided during the contest are all contained in `Tests.elm`. They're each a Json string bound to a variable. Adding more tests:
+The test cases provided during the contest are all contained in `Tests.elm`.
+They're each a Json string bound to a variable. To add more test cases,
+edit this file and add additional definitions of the form:
 
     testN = """"
       <string in full>
      """"
 
-You'll also want to add the test to the drop-down, so you'll need to edit `Viewer.elm`. 
-There's a big list of tuples right at the top, and it goes in there.
+You'll also want to add the test to the drop-down so that you can run it. To do
+that, you'll need to edit `Viewer.elm`.  There's a big list of test tuples right
+at the top, and you add your test cases there. Don't worry; all of the tests are 
+loaded into `Viewer.elm`, so you won't have to modify the imports or anything
+else.
 
-It's that easy!
-
+It's that easy! ;)
 
 ## Output
 
 The output is all conveniently printed on the left of the screen!
 
 ## Files
+
+Here are all of the elm files in our submission.
 
 - `DataStructs.elm` - all of the data structures for the program
 - `Engine.elm` - code for interacting with the game state
