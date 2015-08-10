@@ -57,7 +57,7 @@ type alias Output =
     { id       : Int
     , seed     : Int
     , tag      : String
-    , solution : List Command
+    , solution : String
     }
 
 type alias Input =
