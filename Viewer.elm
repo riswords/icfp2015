@@ -6,8 +6,12 @@ import Graphics.Collage     exposing (..)
 import Graphics.Element     exposing (..)
 import Graphics.Input       exposing (button, dropDown)
 import Graphics.Input.Field exposing (field)
-import Html                 exposing (toElement, div)
+import Html                 exposing (toElement, div, input, Html, Attribute)
+import Html.Events          exposing (on, targetValue)
+import Html.Attributes      exposing (placeholder)
 import Signal               exposing (Address)
+import Maybe                exposing (withDefault)
+import Result               exposing (toMaybe)
 
 import List             exposing ((::), take, indexedMap, drop, map, reverse)
 import Tests            exposing (..)
@@ -75,41 +79,54 @@ showModel addr state =
         collageHeight = floor (oneHexHeight * gridHeight * 1.2)
         collageOffset = (-1.0 * oneHexWidth * gridWidth * 0.5, 
                          oneHexHeight * gridHeight * 0.5)
-        space = spacer 20 20
-    in flow right 
-         [flow down
-            [ space
-            , flow right [ space
-                         , flow down 
-                             [ testSelector addr
-                             , space
-                             , button (Signal.message addr Nop) "Start"
-                             ]
-                         , space 
-                         , flow down 
-                             [ scoreText <| String.append "Score: " <| toString model.score
-                             , space
-                             , scoreText <| 
-                               String.append "Elapsed Time: " <| 
-                               toString <|
-                               floor <|
-                               inputInfo.lastTime - inputInfo.startTime
-                             ]
-                         , space 
-                         , flow right 
-                             [ space
-                             , scoreText <| String.append "Pieces Left: " <| toString model.sourceLength
-                             ]
-                         ]
-            , space                         
-            , collage collageWidth collageHeight 
-                      <| List.append [move collageOffset (group (List.append hexagons unitgons))]
-                                     (statusOverlay state)
-            ]
-         , space 
-         , flow down [space, showOutput model]
-         ]
-
+        space      = spacer 20 20
+        timebox    = toElement 20 20 <| 
+                       inputBox addr "100" 
+                                     (TimeLimit << withDefault 100 << toMaybe << String.toInt)
+        timePanel  = flow down [ labelText "Allowed Time" , spacer 5 5 , timebox] 
+        testSelect = flow down [ testSelector addr
+                               , space
+                               , button (Signal.message addr Nop) "Start"
+                               ]
+        jsonOut    = flow down [ labelText "Output", space, showOutput model ]
+        gameInfo   = flow right 
+                          [ flow down 
+                                 [ labelText <| String.append "Score: " <| toString model.score
+                                 , space
+                                 , labelText <| String.append "Pieces Left: " <| toString model.sourceLength
+                                 ]
+                          , space
+                          , flow down
+                                 [ labelText <| 
+                                   String.append "Elapsed Time: " <| 
+                                   toString <|
+                                   floor <|
+                                   inputInfo.lastTime - inputInfo.startTime
+                                 , space
+                                 , labelText <| 
+                                   String.append "Allowed Time: " <| 
+                                   toString <|
+                                   floor <|
+                                   inputInfo.timeLimit
+                                 ]
+                          ]
+    in flow down [space, flow right
+         [ space 
+         , flow down [ testSelect
+                     , space
+                     , timePanel
+                     , space
+                     , jsonOut
+                     ]
+         , space
+         , flow down [ gameInfo
+                     , space
+                     ,  collage collageWidth collageHeight <|
+                          List.append [move collageOffset (group (List.append hexagons unitgons))]
+                                      (statusOverlay state)
+                     ]
+         ]]
+         
 testSelector addr = 
   dropDown 
     (Signal.message addr)
@@ -148,8 +165,8 @@ statusOverlay state =
     RunningGame   i m c -> []
 
 
-msgText      = Graphics.Collage.text << Text.height 20 << bold << Text.color white << fromString
-scoreText    = centered << Text.height 20 << bold << Text.color black << fromString
+msgText   = Graphics.Collage.text << Text.height 20 << monospace << Text.color white << fromString
+labelText = centered << Text.height 15 << monospace << Text.color black << fromString
 
 renderString : String -> Element
 renderString = centered << monospace << fromString
@@ -159,6 +176,13 @@ chunkUp n s =
   if String.isEmpty s
   then []
   else (String.left n s) :: chunkUp n (dropLeft n s)
+
+inputBox : Address Action -> String -> (String -> Action) -> Html 
+inputBox addr ph f = 
+  input 
+    [ placeholder ph 
+    , on "input" targetValue (\ str -> Signal.message addr <| f str )]
+    []
 
 showOutput : HexModel -> Element
 showOutput model = 
