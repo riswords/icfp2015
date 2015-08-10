@@ -5,7 +5,7 @@ import DataStructs exposing (..)
 import Update      exposing (update, updateScore, lockUnit)
 import Trampoline  exposing (..)
 import Debug       exposing (watch)
-import Util        exposing (removeFirst, splitOn, count, pruneDuplicates)
+import Util        exposing (removeFirst, splitOn, count, pruneDuplicates, isJust)
 import Hex         exposing (getXYCell, cellToOffset, rotateGridlessUnit
                             , isUnitSafe, offsetUnit, offsetToCell
                             )

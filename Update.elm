@@ -75,8 +75,8 @@ spawnNewUnit model =
     in { model
        | unit         <- locatedUnit
        , sourceSeed   <- seed'
-       , sourceLength <- sourceLength - 1
-       , isGameOver   <- not spawnSuccess || sourceLength <= 0
+       , sourceLength <- model.sourceLength - 1
+       , isGameOver   <- not spawnSuccess || model.sourceLength - 1 <= 0
        , history      <- P :: model.history
        }
 

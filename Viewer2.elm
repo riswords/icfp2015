@@ -87,6 +87,8 @@ showModel addr state =
                                      ]
                          , space 
                          , flow right [space, scoreText <| String.append "Score: " <| toString model.score]
+                         , space 
+                         , flow right [space, scoreText <| String.append "Pieces Left: " <| toString model.sourceLength]
                          ]
             , space                         
             , collage collageWidth collageHeight 
