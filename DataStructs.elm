@@ -2,7 +2,6 @@ module DataStructs where
 
 import Random      exposing (int, Generator, Seed, initialSeed)
 import Array       exposing (Array)
-import Trampoline  exposing (..)
 
 ----------------------------------------------
 type       Hex    = Empty | Filled 
@@ -81,7 +80,7 @@ type alias InputInfo =
 
 type GameState
      = GameOver      InputInfo HexModel
-     | ComputingMove InputInfo HexModel (Trampoline (List Command))
+     | ComputingMove InputInfo HexModel (List Command)
      | RunningGame   InputInfo HexModel (List Command)
 
 type Action 

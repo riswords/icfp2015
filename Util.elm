@@ -4,7 +4,6 @@ import DataStructs exposing (..)
 import List        exposing (head, drop, indexedMap, (::), reverse, member)
 import Array       exposing (Array, foldl, repeat)
 import Color       exposing (rgba, Color)
-import Trampoline  exposing (..)
 
 ------------------------------------------------------------------
 -- Hayup
@@ -83,23 +82,3 @@ messageColor : Color -- Center dot
 messageColor = rgba 100 100 100 0.6
 
 ------------------------------------------------------------------
--- Let's expand the trampoline library a little bit.
--- This is probably way slower, but somtimes we need to bounce!
-
-bounce : Trampoline a -> Trampoline a
-bounce a = 
-  case a of
-    Done v     -> Done v
-    Continue v -> v ()
-
-isDone : Trampoline a -> Bool
-isDone a = 
-  case a of
-    Done v     -> True
-    Continue v -> False
-
-withDoneValue : a -> Trampoline a -> a
-withDoneValue default trampoline =  
-  case trampoline of
-    Done a     -> a
-    Continue a -> default

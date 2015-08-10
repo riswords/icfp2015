@@ -2,7 +2,6 @@ module Search where
 
 import DataStructs exposing (..)
 import Update      exposing (update, updateScore, lockUnit)
-import Trampoline  exposing (..)
 import Debug       exposing (watch)
 import Util        exposing (removeFirst, splitOn, count, pruneDuplicates, isJust)
 import Hex         exposing (getXYCell, cellToOffset, rotateGridlessUnit
@@ -61,29 +60,18 @@ heuristic model =
       finish  = if model.isGameOver then -100000 else 0
   in (score * 2) + height + lines - bump + finish
 
-------------------------------------------------------------------------------------------------------
-fastFoldl : (a -> b -> b) -> b -> List a -> b
-fastFoldl f b aes = trampoline <| foldl' f b aes
-
-foldl' : (a -> b -> b) -> b -> List a -> Trampoline b
-foldl' f base ls =
-  case ls of
-    []      -> Done base
-    (x::xs) -> Continue (\ () -> foldl' f (f x base) xs)
 
 ------------------------------------------------------------------------------------------------------
 beforeNextDrop : Command -> List Command -> Bool
 beforeNextDrop cmd cmds =
-  let loop cmd cmds = 
-        case cmds of
-          []       -> Done False
-          (SW::xs) -> Done False
-          (SE::xs) -> Done False
-          (P::xs)  -> Done False
-          (x::xs)  -> if x == cmd
-                      then Done True
-                      else Continue (\ () -> loop cmd xs)
-  in trampoline <| loop cmd cmds                        
+  case cmds of
+    []       -> False
+    (SW::xs) -> False
+    (SE::xs) -> False
+    (P::xs)  -> False
+    (x::xs)  -> if x == cmd
+                then True
+                else beforeNextDrop cmd xs
 
 ------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------
@@ -126,13 +114,11 @@ sortTargets model ls = List.reverse <| sortBy (targetHeuristic model) ls
 ------------------------------------------------------------------------------------------------------
 runCommands : List Command -> HexModel -> HexModel
 runCommands cmds model =
-  let loop cmds model =
-        if model.isGameOver
-        then Done model
-        else case cmds of
-              []      -> Done model
-              (c::cs) -> Continue (\ () -> loop cs (update c model))
-  in trampoline <| loop cmds model
+  if model.isGameOver
+  then model
+  else case cmds of
+        []      -> model
+        (c::cs) -> runCommands cs (update c model)
 
 ------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------
@@ -157,7 +143,7 @@ hitTarget model target = piecePlaced model target && nextPiece model
 
 stopPiece : HexModel -> Maybe (List Command)
 stopPiece init = 
-  fastFoldl
+  foldl
     (\ cmd result ->
          if isJust result
          then result
@@ -179,7 +165,7 @@ memoizedPathfinder model target memo =
                                    in (insertMemo model res memo, res) 
      | nextPiece model          -> (insertMemo model Nothing memo,   Nothing)
      | otherwise                ->
-       fastFoldl
+       foldl
         (\ direction (memo, currentResult) -> 
            if   isJust currentResult
            then (memo, currentResult) 
@@ -241,12 +227,12 @@ pickBestPath : List (List Command, HexModel) -> List Command
 pickBestPath inputs =
   let loop ls curBest =
         case ls of 
-          []      -> Done curBest
+          []      -> curBest
           (x::xs) -> let heurRes = heuristic <| snd x
                      in if heurRes > (snd curBest)
-                        then Continue (\ () -> loop xs (fst x, heurRes))
-                        else Continue (\ () -> loop xs curBest)
-  in fst <| trampoline <| loop inputs ([], 0)
+                        then loop xs (fst x, heurRes)
+                        else loop xs curBest
+  in fst <| loop inputs ([], 0)
 
 ------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------
@@ -254,16 +240,16 @@ bouncePick : HexModel ->
              List HexUnit -> 
              List (Int, Int) -> 
              List (HexUnit, (Int, Int)) -> 
-             Trampoline (List Command)
+             List Command
 bouncePick init unitConfigs bottoms validTargets =
   case validTargets of
-    []      -> Done []
+    []      -> []
     (t::ts) -> let path = buildPathToTarget init t
                in if isJust path
-                  then Done (withDefault [] <| path)
-                  else Continue (\ () -> bouncePick init unitConfigs bottoms ts)
+                  then withDefault [] <| path
+                  else bouncePick init unitConfigs bottoms ts
 
-bouncePickNextMove : HexModel -> Trampoline (List Command)
+bouncePickNextMove : HexModel -> List Command
 bouncePickNextMove init =
   let unitConfigs  = pruneDuplicates <| generateUnitRots init.unit
       bottoms      = List.indexedMap (\ i n -> (i,n)) <| computeHeights init
@@ -282,5 +268,5 @@ pickNextMove init =
   let unitConfigs  = pruneDuplicates <| generateUnitRots init.unit
       bottoms      = List.indexedMap (\ i n -> (i,n)) <| computeHeights init
       validTargets = sortTargets init <| List.concat <| List.map (returnValidTargets init.grid bottoms) unitConfigs
-      path         = withDefault [] <| fastFoldl (folder init) Nothing validTargets
+      path         = withDefault [] <| foldl (folder init) Nothing validTargets
   in path
