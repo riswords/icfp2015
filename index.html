@@ -826,8 +826,7 @@ Elm.DataStructs.make = function (_elm) {
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm),
-   $Trampoline = Elm.Trampoline.make(_elm);
+   $Signal = Elm.Signal.make(_elm);
    var TimeLimit = function (a) {
       return {ctor: "TimeLimit"
              ,_0: a};
@@ -2104,8 +2103,7 @@ Elm.Engine.make = function (_elm) {
    $Search = Elm.Search.make(_elm),
    $Signal = Elm.Signal.make(_elm),
    $Time = Elm.Time.make(_elm),
-   $Update = Elm.Update.make(_elm),
-   $Util = Elm.Util.make(_elm);
+   $Update = Elm.Update.make(_elm);
    var toGameOver = function (state) {
       return function () {
          switch (state.ctor)
@@ -2119,7 +2117,7 @@ Elm.Engine.make = function (_elm) {
               state._0,
               state._1);}
          _U.badCase($moduleName,
-         "between lines 49 and 52");
+         "between lines 48 and 51");
       }();
    };
    var getModelFromState = function (state) {
@@ -2132,7 +2130,7 @@ Elm.Engine.make = function (_elm) {
             case "RunningGame":
             return state._1;}
          _U.badCase($moduleName,
-         "between lines 37 and 40");
+         "between lines 36 and 39");
       }();
    };
    var getInputInfo = function (state) {
@@ -2145,7 +2143,7 @@ Elm.Engine.make = function (_elm) {
             case "RunningGame":
             return state._0;}
          _U.badCase($moduleName,
-         "between lines 30 and 33");
+         "between lines 29 and 32");
       }();
    };
    var outOfTime = function (state) {
@@ -2159,23 +2157,17 @@ Elm.Engine.make = function (_elm) {
       return outOfTime(state) ? toGameOver(state) : function () {
          switch (state.ctor)
          {case "ComputingMove":
-            return $Util.isDone(state._2) ? function () {
-                 var newCmds = A2($Util.withDoneValue,
-                 _L.fromArray([]),
-                 state._2);
+            return function () {
                  var nextCmds = A2($List.filter,
                  F2(function (x,y) {
                     return !_U.eq(x,y);
                  })($DataStructs.P),
-                 newCmds);
+                 state._2);
                  return A3($DataStructs.RunningGame,
                  state._0,
                  state._1,
                  nextCmds);
-              }() : A3($DataStructs.ComputingMove,
-              state._0,
-              state._1,
-              $Util.bounce(state._2));
+              }();
             case "GameOver": return state;
             case "RunningGame":
             return state._1.isGameOver ? A2($DataStructs.GameOver,
@@ -2195,10 +2187,10 @@ Elm.Engine.make = function (_elm) {
                       state._1,
                       $Search.bouncePickNextMove(state._1));}
                  _U.badCase($moduleName,
-                 "between lines 68 and 70");
+                 "between lines 64 and 66");
               }();}
          _U.badCase($moduleName,
-         "between lines 58 and 70");
+         "between lines 57 and 66");
       }();
    };
    var setTimeLimit = F2(function (time,
@@ -2226,7 +2218,7 @@ Elm.Engine.make = function (_elm) {
               state._1,
               state._2);}
          _U.badCase($moduleName,
-         "between lines 21 and 24");
+         "between lines 20 and 23");
       }();
    });
    var updateTime = F2(function (time,
@@ -2254,7 +2246,7 @@ Elm.Engine.make = function (_elm) {
               state._1,
               state._2);}
          _U.badCase($moduleName,
-         "between lines 14 and 17");
+         "between lines 13 and 16");
       }();
    });
    _elm.Engine.values = {_op: _op
@@ -4816,34 +4808,38 @@ Elm.Init.make = function (_elm) {
    });
    var initGameState = function (_v6) {
       return function () {
-         return A2($List.map,
-         function (s) {
-            return $Update.spawnNewUnit({_: {}
-                                        ,grid: A3($List.foldr,
-                                        fillCell,
-                                        A2(initGrid,
-                                        _v6.width,
-                                        _v6.height),
-                                        _v6.filled)
-                                        ,height: _v6.height
-                                        ,history: _L.fromArray([])
-                                        ,id: _v6.id
-                                        ,isGameOver: false
-                                        ,originalSeed: s
-                                        ,prevLines: 0
-                                        ,score: 0
-                                        ,sourceLength: _v6.sourceLength
-                                        ,sourceSeed: s
-                                        ,unit: $DataStructs.HexUnit(_L.fromArray([]))(A3($DataStructs.HexCell,
-                                        0,
-                                        0,
-                                        0))
-                                        ,units: A2($List.map,
-                                        convertUnit,
-                                        _v6.units)
-                                        ,width: _v6.width});
-         },
-         _v6.sourceSeeds);
+         return function () {
+            var modelGrid = A3($List.foldr,
+            fillCell,
+            A2(initGrid,
+            _v6.width,
+            _v6.height),
+            _v6.filled);
+            var modelUnits = A2($List.map,
+            convertUnit,
+            _v6.units);
+            return A2($List.map,
+            function (s) {
+               return $Update.spawnNewUnit({_: {}
+                                           ,grid: modelGrid
+                                           ,height: _v6.height
+                                           ,history: _L.fromArray([])
+                                           ,id: _v6.id
+                                           ,isGameOver: false
+                                           ,originalSeed: s
+                                           ,prevLines: 0
+                                           ,score: 0
+                                           ,sourceLength: _v6.sourceLength
+                                           ,sourceSeed: s
+                                           ,unit: $DataStructs.HexUnit(_L.fromArray([]))(A3($DataStructs.HexCell,
+                                           0,
+                                           0,
+                                           0))
+                                           ,units: modelUnits
+                                           ,width: _v6.width});
+            },
+            _v6.sourceSeeds);
+         }();
       }();
    };
    var setupGame = function (input) {
@@ -11741,37 +11737,6 @@ Elm.Native.Time.make = function(localRuntime)
 	};
 
 };
-Elm.Native.Trampoline = {};
-Elm.Native.Trampoline.make = function(localRuntime) {
-
-	localRuntime.Native = localRuntime.Native || {};
-	localRuntime.Native.Trampoline = localRuntime.Native.Trampoline || {};
-	if (localRuntime.Native.Trampoline.values)
-	{
-		return localRuntime.Native.Trampoline.values;
-	}
-
-	// trampoline : Trampoline a -> a
-	function trampoline(t)
-	{
-		var tramp = t;
-		while(true)
-		{
-			switch(tramp.ctor)
-			{
-				case "Done":
-					return tramp._0;
-				case "Continue":
-					tramp = tramp._0({ ctor: "_Tuple0" });
-					continue;
-			}
-		}
-	}
-
-	return localRuntime.Native.Trampoline.values = {
-		trampoline: trampoline
-	};
-};
 Elm.Native.Transform2D = {};
 Elm.Native.Transform2D.make = function(localRuntime) {
 
@@ -14640,7 +14605,6 @@ Elm.Search.make = function (_elm) {
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
-   $Trampoline = Elm.Trampoline.make(_elm),
    $Update = Elm.Update.make(_elm),
    $Util = Elm.Util.make(_elm);
    var getSmartCommandOrder = F2(function (unit,
@@ -14739,7 +14703,7 @@ Elm.Search.make = function (_elm) {
                    memo)
                    ,_1: $Maybe.Nothing};}
          _U.badCase($moduleName,
-         "between lines 195 and 197");
+         "between lines 181 and 183");
       }();
    });
    var nextPiece = function (model) {
@@ -14747,6 +14711,24 @@ Elm.Search.make = function (_elm) {
       $DataStructs.P,
       model.history),
       1) > 0;
+   };
+   var stopPiece = function (init) {
+      return A3($List.foldl,
+      F2(function (cmd,result) {
+         return $Util.isJust(result) ? result : function () {
+            var res = A2($Update.update,
+            cmd,
+            init);
+            return res.isGameOver || nextPiece(res) ? $Maybe.Just(_L.fromArray([cmd])) : $Maybe.Nothing;
+         }();
+      }),
+      $Maybe.Nothing,
+      _L.fromArray([$DataStructs.E
+                   ,$DataStructs.W
+                   ,$DataStructs.SW
+                   ,$DataStructs.SE
+                   ,$DataStructs.CW
+                   ,$DataStructs.CCW]));
    };
    var isCorrectRotation = F2(function (unit1,
    unit2) {
@@ -14778,7 +14760,7 @@ Elm.Search.make = function (_elm) {
               },
               model.unit.members);}
          _U.badCase($moduleName,
-         "on line 150, column 4 to 94");
+         "on line 136, column 4 to 94");
       }();
    });
    var hitTarget = F2(function (model,
@@ -14789,33 +14771,17 @@ Elm.Search.make = function (_elm) {
    });
    var runCommands = F2(function (cmds,
    model) {
-      return function () {
-         var loop = F2(function (cmds,
-         model) {
-            return model.isGameOver ? $Trampoline.Done(model) : function () {
-               switch (cmds.ctor)
-               {case "::":
-                  return $Trampoline.Continue(function (_v10) {
-                       return function () {
-                          switch (_v10.ctor)
-                          {case "_Tuple0": return A2(loop,
-                               cmds._1,
-                               A2($Update.update,
-                               cmds._0,
-                               model));}
-                          _U.badCase($moduleName,
-                          "on line 134, column 44 to 67");
-                       }();
-                    });
-                  case "[]":
-                  return $Trampoline.Done(model);}
-               _U.badCase($moduleName,
-               "between lines 132 and 135");
-            }();
-         });
-         return $Trampoline.trampoline(A2(loop,
-         cmds,
-         model));
+      return model.isGameOver ? model : function () {
+         switch (cmds.ctor)
+         {case "::":
+            return A2(runCommands,
+              cmds._1,
+              A2($Update.update,
+              cmds._0,
+              model));
+            case "[]": return model;}
+         _U.badCase($moduleName,
+         "between lines 119 and 121");
       }();
    });
    var isValidTarget = F4(function (grid,
@@ -14915,38 +14881,19 @@ Elm.Search.make = function (_elm) {
    var beforeNextDrop = F2(function (cmd,
    cmds) {
       return function () {
-         var loop = F2(function (cmd,
-         cmds) {
-            return function () {
-               switch (cmds.ctor)
-               {case "::":
-                  switch (cmds._0.ctor)
-                    {case "P":
-                       return $Trampoline.Done(false);
-                       case "SE":
-                       return $Trampoline.Done(false);
-                       case "SW":
-                       return $Trampoline.Done(false);}
-                    return _U.eq(cmds._0,
-                    cmd) ? $Trampoline.Done(true) : $Trampoline.Continue(function (_v16) {
-                       return function () {
-                          switch (_v16.ctor)
-                          {case "_Tuple0": return A2(loop,
-                               cmd,
-                               cmds._1);}
-                          _U.badCase($moduleName,
-                          "on line 85, column 46 to 57");
-                       }();
-                    });
-                  case "[]":
-                  return $Trampoline.Done(false);}
-               _U.badCase($moduleName,
-               "between lines 78 and 86");
-            }();
-         });
-         return $Trampoline.trampoline(A2(loop,
-         cmd,
-         cmds));
+         switch (cmds.ctor)
+         {case "::":
+            switch (cmds._0.ctor)
+              {case "P": return false;
+                 case "SE": return false;
+                 case "SW": return false;}
+              return _U.eq(cmds._0,
+              cmd) ? true : A2(beforeNextDrop,
+              cmd,
+              cmds._1);
+            case "[]": return false;}
+         _U.badCase($moduleName,
+         "between lines 67 and 74");
       }();
    });
    var hasDoneOppositeSinceDrop = F2(function (commands,
@@ -14961,7 +14908,7 @@ Elm.Search.make = function (_elm) {
                  commands);
                case "Nothing": return false;}
             _U.badCase($moduleName,
-            "between lines 225 and 227");
+            "between lines 211 and 213");
          }();
       }();
    });
@@ -14973,56 +14920,6 @@ Elm.Search.make = function (_elm) {
       },
       potentials);
    });
-   var foldl$ = F3(function (f,
-   base,
-   ls) {
-      return function () {
-         switch (ls.ctor)
-         {case "::":
-            return $Trampoline.Continue(function (_v23) {
-                 return function () {
-                    switch (_v23.ctor)
-                    {case "_Tuple0":
-                       return A3(foldl$,
-                         f,
-                         A2(f,ls._0,base),
-                         ls._1);}
-                    _U.badCase($moduleName,
-                    "on line 72, column 34 to 56");
-                 }();
-              });
-            case "[]":
-            return $Trampoline.Done(base);}
-         _U.badCase($moduleName,
-         "between lines 70 and 72");
-      }();
-   });
-   var fastFoldl = F3(function (f,
-   b,
-   aes) {
-      return $Trampoline.trampoline(A3(foldl$,
-      f,
-      b,
-      aes));
-   });
-   var stopPiece = function (init) {
-      return A3(fastFoldl,
-      F2(function (cmd,result) {
-         return $Util.isJust(result) ? result : function () {
-            var res = A2($Update.update,
-            cmd,
-            init);
-            return res.isGameOver || nextPiece(res) ? $Maybe.Just(_L.fromArray([cmd])) : $Maybe.Nothing;
-         }();
-      }),
-      $Maybe.Nothing,
-      _L.fromArray([$DataStructs.E
-                   ,$DataStructs.W
-                   ,$DataStructs.SW
-                   ,$DataStructs.SE
-                   ,$DataStructs.CW
-                   ,$DataStructs.CCW]));
-   };
    var memoizedPathfinder = F3(function (model,
    target,
    memo) {
@@ -15052,20 +14949,20 @@ Elm.Search.make = function (_elm) {
                                model,
                                $Maybe.Nothing,
                                memo)
-                               ,_1: $Maybe.Nothing} : A3(fastFoldl,
-      F2(function (direction,_v25) {
+                               ,_1: $Maybe.Nothing} : A3($List.foldl,
+      F2(function (direction,_v16) {
          return function () {
-            switch (_v25.ctor)
+            switch (_v16.ctor)
             {case "_Tuple2":
-               return $Util.isJust(_v25._1) ? {ctor: "_Tuple2"
-                                              ,_0: _v25._0
-                                              ,_1: _v25._1} : function () {
+               return $Util.isJust(_v16._1) ? {ctor: "_Tuple2"
+                                              ,_0: _v16._0
+                                              ,_1: _v16._1} : function () {
                     var $ = A3(memoizedPathfinder,
                     A2($Update.update,
                     direction,
                     model),
                     target,
-                    _v25._0),
+                    _v16._0),
                     newMemo = $._0,
                     newPath = $._1;
                     return A4(foldResult,
@@ -15075,7 +14972,7 @@ Elm.Search.make = function (_elm) {
                     direction);
                  }();}
             _U.badCase($moduleName,
-            "between lines 184 and 187");
+            "between lines 170 and 173");
          }();
       }),
       {ctor: "_Tuple2"
@@ -15113,24 +15010,16 @@ Elm.Search.make = function (_elm) {
                  var path = A2(buildPathToTarget,
                  init,
                  validTargets._0);
-                 return $Util.isJust(path) ? $Trampoline.Done($Maybe.withDefault(_L.fromArray([]))(path)) : $Trampoline.Continue(function (_v32) {
-                    return function () {
-                       switch (_v32.ctor)
-                       {case "_Tuple0":
-                          return A4(bouncePick,
-                            init,
-                            unitConfigs,
-                            bottoms,
-                            validTargets._1);}
-                       _U.badCase($moduleName,
-                       "on line 264, column 42 to 80");
-                    }();
-                 });
+                 return $Util.isJust(path) ? $Maybe.withDefault(_L.fromArray([]))(path) : A4(bouncePick,
+                 init,
+                 unitConfigs,
+                 bottoms,
+                 validTargets._1);
               }();
             case "[]":
-            return $Trampoline.Done(_L.fromArray([]));}
+            return _L.fromArray([]);}
          _U.badCase($moduleName,
-         "between lines 259 and 264");
+         "between lines 245 and 250");
       }();
    });
    var folder = F3(function (init,
@@ -15152,7 +15041,7 @@ Elm.Search.make = function (_elm) {
               break;
             case "[]": return 0;}
          _U.badCase($moduleName,
-         "between lines 49 and 52");
+         "between lines 48 and 51");
       }();
    };
    var heightHeuristic = $List.sum;
@@ -15164,7 +15053,7 @@ Elm.Search.make = function (_elm) {
                {case "Empty": return 0;
                   case "Filled": return 1;}
                _U.badCase($moduleName,
-               "between lines 39 and 42");
+               "between lines 38 and 41");
             }();
          };
          return $Util.maximum(A2($Array.map,
@@ -15180,13 +15069,13 @@ Elm.Search.make = function (_elm) {
          return A3($List.foldr,
          F2(function (j,n) {
             return function () {
-               var _v40 = A3($Hex.getXYCell,
+               var _v29 = A3($Hex.getXYCell,
                i,
                j,
                model.grid);
-               switch (_v40.ctor)
+               switch (_v29.ctor)
                {case "Just":
-                  switch (_v40._0.ctor)
+                  switch (_v29._0.ctor)
                     {case "Filled": return j - 1;}
                     break;}
                return n;
@@ -15209,17 +15098,17 @@ Elm.Search.make = function (_elm) {
       }();
    };
    var targetHeuristic = F2(function (model,
-   _v42) {
+   _v31) {
       return function () {
-         switch (_v42.ctor)
+         switch (_v31.ctor)
          {case "_Tuple2":
             return heuristic(A2($Update.updateScore,
               0,
-              _v42._0)(A2($Update.lockUnit,
-              _v42._0,
+              _v31._0)(A2($Update.lockUnit,
+              _v31._0,
               model)));}
          _U.badCase($moduleName,
-         "on line 121, column 3 to 57");
+         "on line 109, column 3 to 57");
       }();
    });
    var sortTargets = F2(function (model,
@@ -15237,39 +15126,24 @@ Elm.Search.make = function (_elm) {
                {case "::": return function () {
                        var heurRes = heuristic($Basics.snd(ls._0));
                        return _U.cmp(heurRes,
-                       $Basics.snd(curBest)) > 0 ? $Trampoline.Continue(function (_v49) {
-                          return function () {
-                             switch (_v49.ctor)
-                             {case "_Tuple0": return A2(loop,
-                                  ls._1,
-                                  {ctor: "_Tuple2"
-                                  ,_0: $Basics.fst(ls._0)
-                                  ,_1: heurRes});}
-                             _U.badCase($moduleName,
-                             "on line 247, column 48 to 71");
-                          }();
-                       }) : $Trampoline.Continue(function (_v51) {
-                          return function () {
-                             switch (_v51.ctor)
-                             {case "_Tuple0": return A2(loop,
-                                  ls._1,
-                                  curBest);}
-                             _U.badCase($moduleName,
-                             "on line 248, column 48 to 63");
-                          }();
-                       });
+                       $Basics.snd(curBest)) > 0 ? A2(loop,
+                       ls._1,
+                       {ctor: "_Tuple2"
+                       ,_0: $Basics.fst(ls._0)
+                       ,_1: heurRes}) : A2(loop,
+                       ls._1,
+                       curBest);
                     }();
-                  case "[]":
-                  return $Trampoline.Done(curBest);}
+                  case "[]": return curBest;}
                _U.badCase($moduleName,
-               "between lines 243 and 249");
+               "between lines 229 and 235");
             }();
          });
-         return $Basics.fst($Trampoline.trampoline(A2(loop,
+         return $Basics.fst(A2(loop,
          inputs,
          {ctor: "_Tuple2"
          ,_0: _L.fromArray([])
-         ,_1: 0})));
+         ,_1: 0}));
       }();
    };
    var bouncePickNextMove = function (init) {
@@ -15307,7 +15181,7 @@ Elm.Search.make = function (_elm) {
          init.grid,
          bottoms),
          unitConfigs)));
-         var path = $Maybe.withDefault(_L.fromArray([]))(A3(fastFoldl,
+         var path = $Maybe.withDefault(_L.fromArray([]))(A3($List.foldl,
          folder(init),
          $Maybe.Nothing,
          validTargets));
@@ -15320,8 +15194,6 @@ Elm.Search.make = function (_elm) {
                         ,heightHeuristic: heightHeuristic
                         ,bumpHeuristic: bumpHeuristic
                         ,heuristic: heuristic
-                        ,fastFoldl: fastFoldl
-                        ,foldl$: foldl$
                         ,beforeNextDrop: beforeNextDrop
                         ,generateUnitRots: generateUnitRots
                         ,isValidTarget: isValidTarget
@@ -16067,31 +15939,6 @@ Elm.Time.make = function (_elm) {
                       ,delay: delay
                       ,since: since};
    return _elm.Time.values;
-};Elm.Trampoline = Elm.Trampoline || {};
-Elm.Trampoline.make = function (_elm) {
-   "use strict";
-   _elm.Trampoline = _elm.Trampoline || {};
-   if (_elm.Trampoline.values)
-   return _elm.Trampoline.values;
-   var _op = {},
-   _N = Elm.Native,
-   _U = _N.Utils.make(_elm),
-   _L = _N.List.make(_elm),
-   $moduleName = "Trampoline",
-   $Native$Trampoline = Elm.Native.Trampoline.make(_elm);
-   var trampoline = $Native$Trampoline.trampoline;
-   var Continue = function (a) {
-      return {ctor: "Continue"
-             ,_0: a};
-   };
-   var Done = function (a) {
-      return {ctor: "Done",_0: a};
-   };
-   _elm.Trampoline.values = {_op: _op
-                            ,trampoline: trampoline
-                            ,Done: Done
-                            ,Continue: Continue};
-   return _elm.Trampoline.values;
 };Elm.Transform2D = Elm.Transform2D || {};
 Elm.Transform2D.make = function (_elm) {
    "use strict";
@@ -16403,40 +16250,7 @@ Elm.Util.make = function (_elm) {
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm),
-   $Trampoline = Elm.Trampoline.make(_elm);
-   var withDoneValue = F2(function ($default,
-   trampoline) {
-      return function () {
-         switch (trampoline.ctor)
-         {case "Continue":
-            return $default;
-            case "Done":
-            return trampoline._0;}
-         _U.badCase($moduleName,
-         "between lines 103 and 105");
-      }();
-   });
-   var isDone = function (a) {
-      return function () {
-         switch (a.ctor)
-         {case "Continue": return false;
-            case "Done": return true;}
-         _U.badCase($moduleName,
-         "between lines 97 and 99");
-      }();
-   };
-   var bounce = function (a) {
-      return function () {
-         switch (a.ctor)
-         {case "Continue":
-            return a._0({ctor: "_Tuple0"});
-            case "Done":
-            return $Trampoline.Done(a._0);}
-         _U.badCase($moduleName,
-         "between lines 91 and 93");
-      }();
-   };
+   $Signal = Elm.Signal.make(_elm);
    var messageColor = A4($Color.rgba,
    100,
    100,
@@ -16500,7 +16314,7 @@ Elm.Util.make = function (_elm) {
             case "[]":
             return _L.fromArray([]);}
          _U.badCase($moduleName,
-         "between lines 45 and 49");
+         "between lines 44 and 48");
       }();
    };
    var count = F2(function (a,ls) {
@@ -16512,7 +16326,7 @@ Elm.Util.make = function (_elm) {
               ls._1) + 1 : A2(count,a,ls._1);
             case "[]": return 0;}
          _U.badCase($moduleName,
-         "between lines 39 and 41");
+         "between lines 38 and 40");
       }();
    });
    var removeFirst = F2(function (a,
@@ -16526,7 +16340,7 @@ Elm.Util.make = function (_elm) {
             case "[]":
             return _L.fromArray([]);}
          _U.badCase($moduleName,
-         "between lines 31 and 35");
+         "between lines 30 and 34");
       }();
    });
    var splitOn = F2(function (a,
@@ -16550,7 +16364,7 @@ Elm.Util.make = function (_elm) {
                   case "[]":
                   return _L.fromArray([$List.reverse(seen)]);}
                _U.badCase($moduleName,
-               "between lines 22 and 27");
+               "between lines 21 and 26");
             }();
          });
          return A3(helper,
@@ -16565,7 +16379,7 @@ Elm.Util.make = function (_elm) {
          {case "Just": return true;
             case "Nothing": return false;}
          _U.badCase($moduleName,
-         "between lines 13 and 15");
+         "between lines 12 and 14");
       }();
    };
    _elm.Util.values = {_op: _op
@@ -16584,10 +16398,7 @@ Elm.Util.make = function (_elm) {
                       ,yeller: yeller
                       ,uniter: uniter
                       ,unitCenter: unitCenter
-                      ,messageColor: messageColor
-                      ,bounce: bounce
-                      ,isDone: isDone
-                      ,withDoneValue: withDoneValue};
+                      ,messageColor: messageColor};
    return _elm.Util.values;
 };Elm.Viewer = Elm.Viewer || {};
 Elm.Viewer.make = function (_elm) {
@@ -16671,9 +16482,75 @@ Elm.Viewer.make = function (_elm) {
             case "RunningGame":
             return _L.fromArray([]);}
          _U.badCase($moduleName,
-         "between lines 162 and 165");
+         "between lines 106 and 109");
       }();
    };
+   var yoffset = 0;
+   var xoffset = 0;
+   var hexRadius = 20;
+   var circleRadius = hexRadius / 2;
+   var oneHexWidth = hexRadius * 2 * 0.88;
+   var evenOffset = function (n) {
+      return _U.eq(A2($Basics._op["%"],
+      n,
+      2),
+      1) ? oneHexWidth / 2 : 0;
+   };
+   var oneHexHeight = hexRadius * 2 * 0.8;
+   var drawUnit = F3(function (h,
+   w,
+   unit) {
+      return function () {
+         var computeXY = F2(function (col,
+         row) {
+            return {ctor: "_Tuple2"
+                   ,_0: $Basics.toFloat(col) * oneHexWidth + evenOffset(row)
+                   ,_1: -1.0 * $Basics.toFloat(row) * oneHexHeight};
+         });
+         var centerDot = function () {
+            var $ = $Hex.cellToOffset(unit.location),
+            col = $._0,
+            row = $._1;
+            var $ = A2(computeXY,col,row),
+            x = $._0,
+            y = $._1;
+            return $Graphics$Collage.move({ctor: "_Tuple2"
+                                          ,_0: x
+                                          ,_1: y})($Graphics$Collage.filled($Util.unitCenter)($Graphics$Collage.circle(circleRadius)));
+         }();
+         var unitNGon = function (_v9) {
+            return function () {
+               switch (_v9.ctor)
+               {case "_Tuple2":
+                  return $Graphics$Collage.move(A2(computeXY,
+                    _v9._0,
+                    _v9._1))($Graphics$Collage.rotate($Basics.degrees(30))($Graphics$Collage.filled($Util.uniter)(A2($Graphics$Collage.ngon,
+                    6,
+                    hexRadius))));}
+               _U.badCase($moduleName,
+               "between lines 88 and 91");
+            }();
+         };
+         var coords = $Hex.unitToCoordinates(unit);
+         return A2($List.append,
+         A2($List.map,unitNGon,coords),
+         _L.fromArray([centerDot]));
+      }();
+   });
+   var makeHexagon = F3(function (rownum,
+   colnum,
+   val) {
+      return function () {
+         var evenoff = evenOffset(rownum);
+         var color = _U.eq(val,
+         $DataStructs.Empty) ? $Util.clearGrey : $Util.yeller;
+         return $Graphics$Collage.move({ctor: "_Tuple2"
+                                       ,_0: $Basics.toFloat(colnum) * oneHexWidth + evenoff
+                                       ,_1: -1.0 * $Basics.toFloat(rownum) * oneHexHeight})($Graphics$Collage.rotate($Basics.degrees(30))($Graphics$Collage.filled(color)(A2($Graphics$Collage.ngon,
+         6,
+         hexRadius))));
+      }();
+   });
    var testSelector = function (addr) {
       return A2($Graphics$Input.dropDown,
       $Signal.message(addr),
@@ -16753,72 +16630,6 @@ Elm.Viewer.make = function (_elm) {
                     ,_0: "test24"
                     ,_1: $DataStructs.Init($Init.setupGame($Tests.test24))}]));
    };
-   var yoffset = 0;
-   var xoffset = 0;
-   var hexRadius = 20;
-   var circleRadius = hexRadius / 2;
-   var oneHexWidth = hexRadius * 2 * 0.88;
-   var evenOffset = function (n) {
-      return _U.eq(A2($Basics._op["%"],
-      n,
-      2),
-      1) ? oneHexWidth / 2 : 0;
-   };
-   var oneHexHeight = hexRadius * 2 * 0.8;
-   var drawUnit = F3(function (h,
-   w,
-   unit) {
-      return function () {
-         var computeXY = F2(function (col,
-         row) {
-            return {ctor: "_Tuple2"
-                   ,_0: $Basics.toFloat(col) * oneHexWidth + evenOffset(row)
-                   ,_1: -1.0 * $Basics.toFloat(row) * oneHexHeight};
-         });
-         var centerDot = function () {
-            var $ = $Hex.cellToOffset(unit.location),
-            col = $._0,
-            row = $._1;
-            var $ = A2(computeXY,col,row),
-            x = $._0,
-            y = $._1;
-            return $Graphics$Collage.move({ctor: "_Tuple2"
-                                          ,_0: x
-                                          ,_1: y})($Graphics$Collage.filled($Util.unitCenter)($Graphics$Collage.circle(circleRadius)));
-         }();
-         var unitNGon = function (_v9) {
-            return function () {
-               switch (_v9.ctor)
-               {case "_Tuple2":
-                  return $Graphics$Collage.move(A2(computeXY,
-                    _v9._0,
-                    _v9._1))($Graphics$Collage.rotate($Basics.degrees(30))($Graphics$Collage.filled($Util.uniter)(A2($Graphics$Collage.ngon,
-                    6,
-                    hexRadius))));}
-               _U.badCase($moduleName,
-               "between lines 53 and 56");
-            }();
-         };
-         var coords = $Hex.unitToCoordinates(unit);
-         return A2($List.append,
-         A2($List.map,unitNGon,coords),
-         _L.fromArray([centerDot]));
-      }();
-   });
-   var makeHexagon = F3(function (rownum,
-   colnum,
-   val) {
-      return function () {
-         var evenoff = evenOffset(rownum);
-         var color = _U.eq(val,
-         $DataStructs.Empty) ? $Util.clearGrey : $Util.yeller;
-         return $Graphics$Collage.move({ctor: "_Tuple2"
-                                       ,_0: $Basics.toFloat(colnum) * oneHexWidth + evenoff
-                                       ,_1: -1.0 * $Basics.toFloat(rownum) * oneHexHeight})($Graphics$Collage.rotate($Basics.degrees(30))($Graphics$Collage.filled(color)(A2($Graphics$Collage.ngon,
-         6,
-         hexRadius))));
-      }();
-   });
    var showModel = F2(function (addr,
    state) {
       return function () {
@@ -16917,6 +16728,7 @@ Elm.Viewer.make = function (_elm) {
    var viewer = showModel;
    _elm.Viewer.values = {_op: _op
                         ,viewer: viewer
+                        ,testSelector: testSelector
                         ,hexRadius: hexRadius
                         ,circleRadius: circleRadius
                         ,oneHexWidth: oneHexWidth
@@ -16926,9 +16738,8 @@ Elm.Viewer.make = function (_elm) {
                         ,evenOffset: evenOffset
                         ,drawUnit: drawUnit
                         ,makeHexagon: makeHexagon
-                        ,showModel: showModel
-                        ,testSelector: testSelector
                         ,statusOverlay: statusOverlay
+                        ,showModel: showModel
                         ,msgText: msgText
                         ,labelText: labelText
                         ,renderString: renderString
