@@ -6,10 +6,10 @@ This is our submission to the ICFP 2015 Programming Contest.
 
 We realize that this is not the way that inputs were deemed to be accepted by
 the judges. We toyed briefly with the idea of using nodejs to take these
-argument, but that never happened. To be honest, even our current implementation
+arguments, but that never happened. To be honest, even our current implementation 
 is not particularly fast (you'll see what we mean), and we decided that going for
 performance points was out of the question early on. As such, we hope that you
-enjoy our work for what it is: a showcase of the features and promise of the
+enjoy our work for what it is: a showcase of some of the features and promise of the
 Elm language.
 
 ## Running The Application
@@ -21,25 +21,22 @@ To run the application, you have two options:
 2. `elm-reactor` - If you start the elm reactor in this directory, then you can
    just point your browser at `elm_main.elm`.
 
-During running, you may notice what appear to be lock-ups. The program itself
-doesn't seem to be responsible; perhaps it is something internal to Elm, or
-worse, the browser javascript engine?
+During running, you may notice what appear to be lock-ups. The program will 
+eventually resume. We are still troubleshooting the cause of this behavior.
 
 ## Adding New Tests (and other Stuff)
 
-The tests are all contained in `Tests.elm`. They're each a Json string bound to a
-variable. to Add more tests, just bind a new string. In Elm, you can do this
-as:
+The test cases provided during the contest are all contained in `Tests.elm`. They're each a Json string bound to a variable. Adding more tests:
 
     testN = """"
       <string in full>
      """"
 
+You'll also want to add the test to the drop-down, so you'll need to edit `Viewer.elm`. 
+There's a big list of tuples right at the top, and it goes in there.
+
 It's that easy!
 
-If you want to also add the test to the drop-down (which is advisable),
-then you'll need to edit `Viewer.elm`. There's a big list of tuples right at the
-top, and it goes in there easy.
 
 ## Output
 
