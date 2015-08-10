@@ -54,6 +54,7 @@ Here are all of the elm files in our submission.
 - `Engine.elm` - code for interacting with the game state
 - `Hex.elm` - code for dealing with hexes and grid cells
 - `Init.elm` - initialization code
+- `IO.elm` - Json IO tools 
 - `ListDict.elm` - dictionary implementation that doesn't require comparable
 - `PowerWords.elm` - power word finder algorithm
 - `Rand.elm` - random number generator 
@@ -62,4 +63,3 @@ Here are all of the elm files in our submission.
 - `Update.elm` - game model updater code 
 - `Util.elm` - utility code and small functions for general use
 - `Viewer.elm` - the code for rendering the model to the screen
-- `io.elm` - Json IO tools 
