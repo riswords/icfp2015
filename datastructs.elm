@@ -4,17 +4,12 @@ import Random      exposing (int, Generator, Seed, initialSeed)
 import Array       exposing (Array)
 import Trampoline  exposing (..)
 
------------------------------------------
-type Hex 
-    = Empty
-    | Filled
-
+----------------------------------------------
+type       Hex    = Empty | Filled 
 type alias HexRow = Array Hex
-
------------------------------------------
 type alias Grid   = Array (Array Hex)
 
------------------------------------------
+----------------------------------------------
 type alias Cell = 
     { x : Int
     , y : Int
@@ -26,7 +21,7 @@ type alias HexCell =
     , z : Int
     }
 
------------------------------------------
+----------------------------------------------
 type alias Unit = 
     { members :  List Cell
     , pivot : Cell
@@ -37,17 +32,10 @@ type alias HexUnit =
     , location : HexCell
     }
 
------------------------------------------
-type Command 
-    = CW
-    | CCW
-    | E
-    | W
-    | SE
-    | SW
-    | P
+----------------------------------------------
+type Command = CW | CCW | E | W | SE | SW | P
 
------------------------------------------
+----------------------------------------------
 type alias HexModel = 
     { id           : Int
     , units        : List HexUnit
@@ -63,7 +51,7 @@ type alias HexModel =
     , height       : Int
     }
 
------------------------------------------
+----------------------------------------------
 type alias Output = 
     { id       : Int
     , seed     : Int
@@ -81,7 +69,7 @@ type alias Input =
   , sourceSeeds  : List Int
   }
 
------------------------------------------
+----------------------------------------------
 
 type GameState
      = GameOver      HexModel

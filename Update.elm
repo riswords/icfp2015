@@ -73,10 +73,11 @@ spawnNewUnit model =
         locatedUnit      = moveToCenter model newUnit
         spawnSuccess     = isUnitSafe model.grid locatedUnit
     in { model
-       | unit       <- locatedUnit
-       , sourceSeed <- seed'
-       , isGameOver <- not spawnSuccess
-       , history    <- P :: model.history
+       | unit         <- locatedUnit
+       , sourceSeed   <- seed'
+       , sourceLength <- sourceLength - 1
+       , isGameOver   <- not spawnSuccess || sourceLength <= 0
+       , history      <- P :: model.history
        }
 
 moveToCenter : HexModel -> HexUnit -> HexUnit

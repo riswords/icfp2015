@@ -7,6 +7,14 @@ import Color       exposing (rgba, Color)
 import Trampoline  exposing (..)
 
 ------------------------------------------------------------------
+-- Hayup
+isJust : Maybe a -> Bool
+isJust v =
+  case v of 
+    Nothing  -> False
+    (Just x) -> True
+
+------------------------------------------------------------------
 -- Some list helpers
 splitOn : a -> List a -> List (List a)
 splitOn a ls =

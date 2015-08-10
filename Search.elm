@@ -62,43 +62,6 @@ heuristic model =
       finish  = if model.isGameOver then -100000 else 0
   in (score * 2) + height + lines - bump + finish
 
------------------------------------------------------------------------------
--- Generate a population of landing spots using the height heuristic
--- Genetic Algorithm
-
-{--
-PSEUDOCODE
-
-1. Generate population
-2. Score population
-3. Select top 50
-4. Permute top 50, generate 50 more
-5. Iterate until we're happy
-
---}
-
-------------------------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------------------------
-type alias Seeded a = (a, Seed)
-withSeed : a -> Seed -> Seeded a
-withSeed = (,)
- 
-moveArr : Array Command
-moveArr = fromList [E,W,SW,SE,CW,CCW]
-
-genNum : Int -> Int -> Seed -> Seeded Int
-genNum lo hi seed = generate (int lo hi) seed
-
-genCommand : Seed -> Seeded Command
-genCommand seed = let (index, newSeed) = genNum 0 5 seed
-                  in withSeed (withDefault E <| Array.get index moveArr) newSeed
-
-isJust : Maybe a -> Bool
-isJust v =
-  case v of 
-    Nothing  -> False
-    (Just x) -> True
-
 ------------------------------------------------------------------------------------------------------
 fastFoldl : (a -> b -> b) -> b -> List a -> b
 fastFoldl f b aes = trampoline <| foldl' f b aes
@@ -110,22 +73,6 @@ foldl' f base ls =
     (x::xs) -> Continue (\ () -> foldl' f (f x base) xs)
 
 ------------------------------------------------------------------------------------------------------
-trashCompactor : List Command -> List Command -- for the detention Level
-trashCompactor ls = 
-  let trashCompactorLoop ls acc =
-        case ls of
-          []              -> Done <| reverse acc
-          (CW::CCW::rest) -> Continue (\ () -> trashCompactorLoop rest acc)
-          (CCW::CW::rest) -> Continue (\ () -> trashCompactorLoop rest acc)
-          (W::rest)       -> if   beforeNextDrop E rest
-                             then Continue (\ () -> trashCompactorLoop (removeFirst E rest) acc)
-                             else Continue (\ () -> trashCompactorLoop rest (W :: acc))
-          (E::rest)       -> if   beforeNextDrop W rest
-                             then Continue (\ () -> trashCompactorLoop (removeFirst W rest) acc)
-                             else Continue (\ () -> trashCompactorLoop rest (E :: acc))
-          (x::xs)         -> Continue (\ () -> trashCompactorLoop xs (x :: acc))
-  in trampoline <| trashCompactorLoop ls []
-
 beforeNextDrop : Command -> List Command -> Bool
 beforeNextDrop cmd cmds =
   let loop cmd cmds = 
