@@ -5,37 +5,27 @@ import List exposing (reverse, filter)
 import Json.Encode exposing (encode, object)
 import Json.Decode exposing ((:=), decodeString, object2, object7)
 import String      exposing (toList, fromList)
+import PowerWords  exposing (commandsToPowerWords)
 
--- type Command 
-extractOp : Command -> Char
-extractOp op = 
-  case op of
-    W   -> 'p' 
-    E   -> 'b'
-    SW  -> 'a'
-    SE  -> 'l'
-    CW  -> 'd'
-    CCW -> 'k'
 
 generateOutput : HexModel -> Output
 generateOutput model = 
-    { id = model.id
-    , seed = model.originalSeed
-    , tag = "hacknslash"
-    , solution = reverse (filter ((/=) P) model.history)
-    }
+  let commands = reverse (filter ((/=) P) model.history)
+  in { id = model.id
+     , seed = model.originalSeed
+     , tag = "hacknslash"
+     , solution = commandsToPowerWords commands model.powerWords
+     }
 
 toJson : Output -> String
 toJson {id, seed, tag, solution} =
   let int = Json.Encode.int
       str = Json.Encode.string
   in       
-    encode 0 <| object [ ("problemId" , int id)
-                       , ("seed",       int seed)
-                       , ("tag",        str tag)
-                       , ("solution",   List.map extractOp solution
-                                         |> fromList
-                                         |> str )
+    encode 0 <| object [ ("problemId", int id)
+                       , ("seed",      int seed)
+                       , ("tag",       str tag)
+                       , ("solution",  solution)
                        ]
 
 fromJson : String -> Input
