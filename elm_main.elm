@@ -32,31 +32,33 @@ main = looper emptyModel
 box : Signal.Mailbox Action
 box = Signal.mailbox <| Init <| setupGame test0 
 
+initialInfo = {powerWords = [], time = 100}
+
 looper : HexModel -> Signal Element
 looper init = 
   Signal.map (viewer box.address)  <| 
     Signal.foldp
       (\ (action, i) state ->
         case action of
-          Init model  -> RunningGame model []
+          Init model  -> RunningGame initialInfo model []
           TimeLimit n -> state
           Nop         -> updateGame state)
-      (RunningGame init [])
+      (RunningGame initialInfo init [])
       (Signal.map2 (,) box.signal (Time.fps 3))
 
 updateGame : GameState -> GameState
 updateGame state =
   case state of
-    GameOver m           -> state
-    ComputingMove m tram -> if isDone tram
-                            then let newCmds = withDoneValue [] tram
-                                     nextCmds  = List.filter ((/=)P) newCmds
-                                 in RunningGame m nextCmds
-                            else ComputingMove m (bounce tram)     
-    RunningGame m cmds   -> 
+    GameOver i m           -> state
+    ComputingMove i m tram -> if isDone tram
+                              then let newCmds = withDoneValue [] tram
+                                       nextCmds  = List.filter ((/=)P) newCmds
+                                   in RunningGame i m nextCmds
+                              else ComputingMove i m (bounce tram)     
+    RunningGame i m cmds   -> 
       if m.isGameOver
-      then GameOver m
+      then GameOver i m
       else case cmds of
-             []      -> ComputingMove m (bouncePickNextMove m)
-             (c::cs) -> RunningGame   (update c m) cs
+             []      -> ComputingMove i m (bouncePickNextMove m)
+             (c::cs) -> RunningGame i (update c m) cs
 

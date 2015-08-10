@@ -72,10 +72,15 @@ type alias Input =
 
 ----------------------------------------------
 
+type alias InputInfo =
+     { powerWords : List String
+     , time       : Int 
+     }
+
 type GameState
-     = GameOver      HexModel
-     | ComputingMove HexModel (Trampoline (List Command))
-     | RunningGame   HexModel (List Command)
+     = GameOver      InputInfo HexModel
+     | ComputingMove InputInfo HexModel (Trampoline (List Command))
+     | RunningGame   InputInfo HexModel (List Command)
 
 type Action 
      = Init HexModel
