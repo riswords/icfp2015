@@ -4816,34 +4816,38 @@ Elm.Init.make = function (_elm) {
    });
    var initGameState = function (_v6) {
       return function () {
-         return A2($List.map,
-         function (s) {
-            return $Update.spawnNewUnit({_: {}
-                                        ,grid: A3($List.foldr,
-                                        fillCell,
-                                        A2(initGrid,
-                                        _v6.width,
-                                        _v6.height),
-                                        _v6.filled)
-                                        ,height: _v6.height
-                                        ,history: _L.fromArray([])
-                                        ,id: _v6.id
-                                        ,isGameOver: false
-                                        ,originalSeed: s
-                                        ,prevLines: 0
-                                        ,score: 0
-                                        ,sourceLength: _v6.sourceLength
-                                        ,sourceSeed: s
-                                        ,unit: $DataStructs.HexUnit(_L.fromArray([]))(A3($DataStructs.HexCell,
-                                        0,
-                                        0,
-                                        0))
-                                        ,units: A2($List.map,
-                                        convertUnit,
-                                        _v6.units)
-                                        ,width: _v6.width});
-         },
-         _v6.sourceSeeds);
+         return function () {
+            var modelGrid = A3($List.foldr,
+            fillCell,
+            A2(initGrid,
+            _v6.width,
+            _v6.height),
+            _v6.filled);
+            var modelUnits = A2($List.map,
+            convertUnit,
+            _v6.units);
+            return A2($List.map,
+            function (s) {
+               return $Update.spawnNewUnit({_: {}
+                                           ,grid: modelGrid
+                                           ,height: _v6.height
+                                           ,history: _L.fromArray([])
+                                           ,id: _v6.id
+                                           ,isGameOver: false
+                                           ,originalSeed: s
+                                           ,prevLines: 0
+                                           ,score: 0
+                                           ,sourceLength: _v6.sourceLength
+                                           ,sourceSeed: s
+                                           ,unit: $DataStructs.HexUnit(_L.fromArray([]))(A3($DataStructs.HexCell,
+                                           0,
+                                           0,
+                                           0))
+                                           ,units: modelUnits
+                                           ,width: _v6.width});
+            },
+            _v6.sourceSeeds);
+         }();
       }();
    };
    var setupGame = function (input) {
@@ -16671,9 +16675,75 @@ Elm.Viewer.make = function (_elm) {
             case "RunningGame":
             return _L.fromArray([]);}
          _U.badCase($moduleName,
-         "between lines 162 and 165");
+         "between lines 106 and 109");
       }();
    };
+   var yoffset = 0;
+   var xoffset = 0;
+   var hexRadius = 20;
+   var circleRadius = hexRadius / 2;
+   var oneHexWidth = hexRadius * 2 * 0.88;
+   var evenOffset = function (n) {
+      return _U.eq(A2($Basics._op["%"],
+      n,
+      2),
+      1) ? oneHexWidth / 2 : 0;
+   };
+   var oneHexHeight = hexRadius * 2 * 0.8;
+   var drawUnit = F3(function (h,
+   w,
+   unit) {
+      return function () {
+         var computeXY = F2(function (col,
+         row) {
+            return {ctor: "_Tuple2"
+                   ,_0: $Basics.toFloat(col) * oneHexWidth + evenOffset(row)
+                   ,_1: -1.0 * $Basics.toFloat(row) * oneHexHeight};
+         });
+         var centerDot = function () {
+            var $ = $Hex.cellToOffset(unit.location),
+            col = $._0,
+            row = $._1;
+            var $ = A2(computeXY,col,row),
+            x = $._0,
+            y = $._1;
+            return $Graphics$Collage.move({ctor: "_Tuple2"
+                                          ,_0: x
+                                          ,_1: y})($Graphics$Collage.filled($Util.unitCenter)($Graphics$Collage.circle(circleRadius)));
+         }();
+         var unitNGon = function (_v9) {
+            return function () {
+               switch (_v9.ctor)
+               {case "_Tuple2":
+                  return $Graphics$Collage.move(A2(computeXY,
+                    _v9._0,
+                    _v9._1))($Graphics$Collage.rotate($Basics.degrees(30))($Graphics$Collage.filled($Util.uniter)(A2($Graphics$Collage.ngon,
+                    6,
+                    hexRadius))));}
+               _U.badCase($moduleName,
+               "between lines 88 and 91");
+            }();
+         };
+         var coords = $Hex.unitToCoordinates(unit);
+         return A2($List.append,
+         A2($List.map,unitNGon,coords),
+         _L.fromArray([centerDot]));
+      }();
+   });
+   var makeHexagon = F3(function (rownum,
+   colnum,
+   val) {
+      return function () {
+         var evenoff = evenOffset(rownum);
+         var color = _U.eq(val,
+         $DataStructs.Empty) ? $Util.clearGrey : $Util.yeller;
+         return $Graphics$Collage.move({ctor: "_Tuple2"
+                                       ,_0: $Basics.toFloat(colnum) * oneHexWidth + evenoff
+                                       ,_1: -1.0 * $Basics.toFloat(rownum) * oneHexHeight})($Graphics$Collage.rotate($Basics.degrees(30))($Graphics$Collage.filled(color)(A2($Graphics$Collage.ngon,
+         6,
+         hexRadius))));
+      }();
+   });
    var testSelector = function (addr) {
       return A2($Graphics$Input.dropDown,
       $Signal.message(addr),
@@ -16753,72 +16823,6 @@ Elm.Viewer.make = function (_elm) {
                     ,_0: "test24"
                     ,_1: $DataStructs.Init($Init.setupGame($Tests.test24))}]));
    };
-   var yoffset = 0;
-   var xoffset = 0;
-   var hexRadius = 20;
-   var circleRadius = hexRadius / 2;
-   var oneHexWidth = hexRadius * 2 * 0.88;
-   var evenOffset = function (n) {
-      return _U.eq(A2($Basics._op["%"],
-      n,
-      2),
-      1) ? oneHexWidth / 2 : 0;
-   };
-   var oneHexHeight = hexRadius * 2 * 0.8;
-   var drawUnit = F3(function (h,
-   w,
-   unit) {
-      return function () {
-         var computeXY = F2(function (col,
-         row) {
-            return {ctor: "_Tuple2"
-                   ,_0: $Basics.toFloat(col) * oneHexWidth + evenOffset(row)
-                   ,_1: -1.0 * $Basics.toFloat(row) * oneHexHeight};
-         });
-         var centerDot = function () {
-            var $ = $Hex.cellToOffset(unit.location),
-            col = $._0,
-            row = $._1;
-            var $ = A2(computeXY,col,row),
-            x = $._0,
-            y = $._1;
-            return $Graphics$Collage.move({ctor: "_Tuple2"
-                                          ,_0: x
-                                          ,_1: y})($Graphics$Collage.filled($Util.unitCenter)($Graphics$Collage.circle(circleRadius)));
-         }();
-         var unitNGon = function (_v9) {
-            return function () {
-               switch (_v9.ctor)
-               {case "_Tuple2":
-                  return $Graphics$Collage.move(A2(computeXY,
-                    _v9._0,
-                    _v9._1))($Graphics$Collage.rotate($Basics.degrees(30))($Graphics$Collage.filled($Util.uniter)(A2($Graphics$Collage.ngon,
-                    6,
-                    hexRadius))));}
-               _U.badCase($moduleName,
-               "between lines 53 and 56");
-            }();
-         };
-         var coords = $Hex.unitToCoordinates(unit);
-         return A2($List.append,
-         A2($List.map,unitNGon,coords),
-         _L.fromArray([centerDot]));
-      }();
-   });
-   var makeHexagon = F3(function (rownum,
-   colnum,
-   val) {
-      return function () {
-         var evenoff = evenOffset(rownum);
-         var color = _U.eq(val,
-         $DataStructs.Empty) ? $Util.clearGrey : $Util.yeller;
-         return $Graphics$Collage.move({ctor: "_Tuple2"
-                                       ,_0: $Basics.toFloat(colnum) * oneHexWidth + evenoff
-                                       ,_1: -1.0 * $Basics.toFloat(rownum) * oneHexHeight})($Graphics$Collage.rotate($Basics.degrees(30))($Graphics$Collage.filled(color)(A2($Graphics$Collage.ngon,
-         6,
-         hexRadius))));
-      }();
-   });
    var showModel = F2(function (addr,
    state) {
       return function () {
@@ -16917,6 +16921,7 @@ Elm.Viewer.make = function (_elm) {
    var viewer = showModel;
    _elm.Viewer.values = {_op: _op
                         ,viewer: viewer
+                        ,testSelector: testSelector
                         ,hexRadius: hexRadius
                         ,circleRadius: circleRadius
                         ,oneHexWidth: oneHexWidth
@@ -16926,9 +16931,8 @@ Elm.Viewer.make = function (_elm) {
                         ,evenOffset: evenOffset
                         ,drawUnit: drawUnit
                         ,makeHexagon: makeHexagon
-                        ,showModel: showModel
-                        ,testSelector: testSelector
                         ,statusOverlay: statusOverlay
+                        ,showModel: showModel
                         ,msgText: msgText
                         ,labelText: labelText
                         ,renderString: renderString
