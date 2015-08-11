@@ -29,6 +29,40 @@ import Init             exposing (setupGame)
 viewer : Address Action -> GameState -> Element
 viewer = showModel 
 
+-----------------------------------------------------------------------------
+-- Test Selector
+testSelector addr = 
+  dropDown 
+    (Signal.message addr)
+    [ ("test0",  Init <| setupGame test0)
+    , ("test1",  Init <| setupGame test1)
+    , ("test2",  Init <| setupGame test2)
+    , ("test3",  Init <| setupGame test3)
+    , ("test4",  Init <| setupGame test4)
+    , ("test5",  Init <| setupGame test5)
+    , ("test6",  Init <| setupGame test6)
+    , ("test7",  Init <| setupGame test7)
+    , ("test8",  Init <| setupGame test8)
+    , ("test9",  Init <| setupGame test9)
+    , ("test10", Init <| setupGame test10)
+    , ("test11", Init <| setupGame test11)
+    , ("test12", Init <| setupGame test12)
+    , ("test13", Init <| setupGame test13)
+    , ("test14", Init <| setupGame test14)
+    , ("test15", Init <| setupGame test15)
+    , ("test16", Init <| setupGame test16)
+    , ("test17", Init <| setupGame test17)
+    , ("test18", Init <| setupGame test18)
+    , ("test19", Init <| setupGame test19)
+    , ("test20", Init <| setupGame test20)
+    , ("test21", Init <| setupGame test21)
+    , ("test22", Init <| setupGame test22)
+    , ("test23", Init <| setupGame test23)
+    , ("test24", Init <| setupGame test24)
+    ]
+
+
+-----------------------------------------------------------------------------
 -- Just some important values
 hexRadius    = 20
 circleRadius = hexRadius / 2
@@ -39,6 +73,7 @@ yoffset      = 0
 
 evenOffset n = if (n % 2 == 1) then (oneHexWidth / 2) else 0
 
+-----------------------------------------------------------------------------
 -- Drawers
 drawUnit : Float -> Float -> HexUnit -> List Form
 drawUnit h w unit =
@@ -66,6 +101,15 @@ makeHexagon rownum colnum val =
        |> move ((toFloat colnum) * oneHexWidth + evenoff,
                 -1.0 * (toFloat rownum) * oneHexHeight)
 
+statusOverlay : GameState -> List Form
+statusOverlay state = 
+  case state of 
+    GameOver      i m   -> [rect 200 100 |> filled messageColor, msgText "  Game Over"]
+    ComputingMove i m t -> [rect 200 100 |> filled messageColor, msgText "  Computing Move"]
+    RunningGame   i m c -> []
+
+-----------------------------------------------------------------------------
+-- Viewer
 showModel : Address Action -> GameState -> Element
 showModel addr state =
     let model      = getModelFromState state
@@ -126,44 +170,9 @@ showModel addr state =
                                       (statusOverlay state)
                      ]
          ]]
-         
-testSelector addr = 
-  dropDown 
-    (Signal.message addr)
-    [ ("test0",  Init <| setupGame test0)
-    , ("test1",  Init <| setupGame test1)
-    , ("test2",  Init <| setupGame test2)
-    , ("test3",  Init <| setupGame test3)
-    , ("test4",  Init <| setupGame test4)
-    , ("test5",  Init <| setupGame test5)
-    , ("test6",  Init <| setupGame test6)
-    , ("test7",  Init <| setupGame test7)
-    , ("test8",  Init <| setupGame test8)
-    , ("test9",  Init <| setupGame test9)
-    , ("test10", Init <| setupGame test10)
-    , ("test11", Init <| setupGame test11)
-    , ("test12", Init <| setupGame test12)
-    , ("test13", Init <| setupGame test13)
-    , ("test14", Init <| setupGame test14)
-    , ("test15", Init <| setupGame test15)
-    , ("test16", Init <| setupGame test16)
-    , ("test17", Init <| setupGame test17)
-    , ("test18", Init <| setupGame test18)
-    , ("test19", Init <| setupGame test19)
-    , ("test20", Init <| setupGame test20)
-    , ("test21", Init <| setupGame test21)
-    , ("test22", Init <| setupGame test22)
-    , ("test23", Init <| setupGame test23)
-    , ("test24", Init <| setupGame test24)
-    ]
 
-statusOverlay : GameState -> List Form
-statusOverlay state = 
-  case state of 
-    GameOver      i m   -> [rect 200 100 |> filled messageColor, msgText "  Game Over"]
-    ComputingMove i m t -> [rect 200 100 |> filled messageColor, msgText "  Computing Move"]
-    RunningGame   i m c -> []
-
+-----------------------------------------------------------------------------
+-- Other Helpers
 
 msgText   = Graphics.Collage.text << Text.height 20 << monospace << Text.color white << fromString
 labelText = centered << Text.height 15 << monospace << Text.color black << fromString
